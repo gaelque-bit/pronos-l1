@@ -1,9 +1,9 @@
 {
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "NIXPACKS",
+    "buildCommand": "npm install && cd ../frontend && npm install && npm run build"
   },
   "deploy": {
-    "startCommand": "node server.js",
-    "restartPolicyType": "ON_FAILURE"
+    "startCommand": "node server.js"
   }
 }

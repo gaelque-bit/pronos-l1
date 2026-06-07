@@ -11,9 +11,12 @@ app.use(express.json());
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/ranking'));
 
-// ── Routes protégées ───────────────────────────────────────────────────────
+// ── Routes protégées (users) ───────────────────────────────────────────────
 const authMiddleware = require('./middlewares/auth');
 app.use('/api', authMiddleware, require('./routes/predict'));
+
+// ── Routes admin ───────────────────────────────────────────────────────────
+app.use('/api', require('./routes/admin'));
 
 // ── Route de test ──────────────────────────────────────────────────────────
 app.get('/api', (req, res) => {
@@ -23,18 +26,7 @@ app.get('/api', (req, res) => {
 // ── Cron jobs ──────────────────────────────────────────────────────────────
 require('./jobs/syncMatches');
 
-// ── Route admin ────────────────────────────────────────────────────────────
-const { syncMatches } = require('./jobs/syncMatches');
-app.post('/api/admin/sync', authMiddleware, async (req, res) => {
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Accès refusé.' });
-  }
-  await syncMatches();
-  res.json({ message: 'Synchronisation terminée.' });
-});
-
 // ── Frontend ───────────────────────────────────────────────────────────────
-// Le dossier dist est copié directement dans backend/
 const distPath = path.join(__dirname, 'dist');
 console.log('📁 Chemin frontend dist:', distPath);
 app.use(express.static(distPath));

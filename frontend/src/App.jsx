@@ -1,22 +1,50 @@
 import { useState, useEffect } from "react";
+import AdminScreen from './AdminScreen';
 
 // ─── Drapeaux ─────────────────────────────────────────────────────────────────
 const FLAGS = {
   "Algeria":"🇩🇿","Argentina":"🇦🇷","Australia":"🇦🇺","Austria":"🇦🇹",
   "Belgium":"🇧🇪","Bosnia-H.":"🇧🇦","Bosnia-Herzegovina":"🇧🇦",
   "Brazil":"🇧🇷","Brésil":"🇧🇷","Canada":"🇨🇦","Cape Verde":"🇨🇻",
-  "Colombia":"🇨🇴","Congo DR":"🇨🇩","Croatia":"🇭🇷","Curaçao":"🇨🇼",
-  "Czechia":"🇨🇿","Ecuador":"🇪🇨","Egypt":"🇪🇬","England":"🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-  "France":"🇫🇷","Germany":"🇩🇪","Ghana":"🇬🇭","Haiti":"🇭🇹",
+  "Chile":"🇨🇱","Colombia":"🇨🇴","Congo DR":"🇨🇩","Costa Rica":"🇨🇷",
+  "Croatia":"🇭🇷","Curaçao":"🇨🇼","Czechia":"🇨🇿","Ecuador":"🇪🇨",
+  "Egypt":"🇪🇬","England":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","France":"🇫🇷","Germany":"🇩🇪",
+  "Ghana":"🇬🇭","Guatemala":"🇬🇹","Haiti":"🇭🇹","Honduras":"🇭🇳",
   "Iran":"🇮🇷","Iraq":"🇮🇶","Ivory Coast":"🇨🇮","Japan":"🇯🇵",
   "Jordan":"🇯🇴","Korea Republic":"🇰🇷","Mexico":"🇲🇽","Morocco":"🇲🇦",
-  "Netherlands":"🇳🇱","New Zealand":"🇳🇿","Norway":"🇳🇴","Panama":"🇵🇦",
-  "Paraguay":"🇵🇾","Portugal":"🇵🇹","Qatar":"🇶🇦","Saudi Arabia":"🇸🇦",
-  "Scotland":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","Senegal":"🇸🇳","South Africa":"🇿🇦","Spain":"🇪🇸",
+  "Netherlands":"🇳🇱","New Zealand":"🇳🇿","Nigeria":"🇳🇬","Norway":"🇳🇴",
+  "Panama":"🇵🇦","Paraguay":"🇵🇾","Peru":"🇵🇪","Poland":"🇵🇱",
+  "Portugal":"🇵🇹","Qatar":"🇶🇦","Saudi Arabia":"🇸🇦","Scotland":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "Senegal":"🇸🇳","Serbia":"🇷🇸","South Africa":"🇿🇦","Spain":"🇪🇸",
   "Sweden":"🇸🇪","Switzerland":"🇨🇭","Tunisia":"🇹🇳","Turkey":"🇹🇷",
-  "USA":"🇺🇸","Uruguay":"🇺🇾","Uzbekistan":"🇺🇿",
+  "USA":"🇺🇸","Uruguay":"🇺🇾","Uzbekistan":"🇺🇿","Venezuela":"🇻🇪",
+  "Wales":"🏴󠁧󠁢󠁷󠁬󠁳󠁿","Cameroon":"🇨🇲","Bolivia":"🇧🇴",
 };
-const flag = (name) => FLAGS[name] || "🏳️";
+
+const TEAM_NAMES_FR = {
+  "Algeria":"Algérie","Argentina":"Argentine","Australia":"Australie",
+  "Austria":"Autriche","Belgium":"Belgique","Bosnia-H.":"Bosnie-Herzégovine",
+  "Bosnia-Herzegovina":"Bosnie-Herzégovine","Brazil":"Brésil","Brésil":"Brésil",
+  "Canada":"Canada","Cape Verde":"Cap-Vert","Chile":"Chili","Colombia":"Colombie",
+  "Congo DR":"RD Congo","Costa Rica":"Costa Rica","Croatia":"Croatie",
+  "Curaçao":"Curaçao","Czechia":"Tchéquie","Ecuador":"Équateur","Egypt":"Égypte",
+  "England":"Angleterre","France":"France","Germany":"Allemagne","Ghana":"Ghana",
+  "Guatemala":"Guatemala","Haiti":"Haïti","Honduras":"Honduras","Iran":"Iran",
+  "Iraq":"Irak","Ivory Coast":"Côte d'Ivoire","Japan":"Japon","Jordan":"Jordanie",
+  "Korea Republic":"Corée du Sud","Mexico":"Mexique","Morocco":"Maroc",
+  "Netherlands":"Pays-Bas","New Zealand":"Nouvelle-Zélande","Nigeria":"Nigéria",
+  "Norway":"Norvège","Panama":"Panama","Paraguay":"Paraguay","Peru":"Pérou",
+  "Poland":"Pologne","Portugal":"Portugal","Qatar":"Qatar",
+  "Saudi Arabia":"Arabie Saoudite","Scotland":"Écosse","Senegal":"Sénégal",
+  "Serbia":"Serbie","South Africa":"Afrique du Sud","Spain":"Espagne",
+  "Sweden":"Suède","Switzerland":"Suisse","Tunisia":"Tunisie","Turkey":"Turquie",
+  "USA":"États-Unis","Uruguay":"Uruguay","Uzbekistan":"Ouzbékistan",
+  "Venezuela":"Venezuela","Wales":"Pays de Galles","Cameroon":"Cameroun",
+  "Bolivia":"Bolivie",
+};
+
+const flag     = (name) => FLAGS[name] || "🏳️";
+const teamName = (name) => TEAM_NAMES_FR[name] || name;
 
 // ─── CSS ──────────────────────────────────────────────────────────────────────
 const CSS = `
@@ -34,7 +62,6 @@ const CSS = `
   body { background:var(--obsidian); color:var(--cream); font-family:var(--font-body); font-weight:300; letter-spacing:0.03em; min-height:100vh; background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(201,168,76,0.07) 0%,transparent 70%); }
   .app { max-width:900px; margin:0 auto; padding:0 20px 80px; }
 
-  /* Header */
   .header { padding:32px 0 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(201,168,76,0.18); margin-bottom:32px; }
   .logo { font-family:var(--font-display); font-size:1.7rem; font-weight:600; letter-spacing:0.18em; color:var(--gold); text-transform:uppercase; }
   .logo span { color:var(--cream); font-weight:400; font-style:italic; }
@@ -43,7 +70,6 @@ const CSS = `
   .btn-logout { background:none; border:none; cursor:pointer; color:var(--gray); font-size:0.72rem; letter-spacing:0.06em; padding:0; transition:color var(--transition); font-family:var(--font-body); }
   .btn-logout:hover { color:var(--red); }
 
-  /* Tabs */
   .tabs-main { display:flex; border-bottom:1px solid rgba(201,168,76,0.15); margin-bottom:28px; }
   .tab-main { flex:1; padding:14px 10px; background:none; border:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; font-family:var(--font-body); font-size:0.75rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--gray); transition:all var(--transition); }
   .tab-main.active { color:var(--gold); border-bottom-color:var(--gold); }
@@ -53,19 +79,14 @@ const CSS = `
   .tab-sub.active { background:rgba(201,168,76,0.1); border-color:rgba(201,168,76,0.3); color:var(--gold); }
   .tab-sub:hover:not(.active) { color:var(--cream); }
 
-  /* Section titre */
   .section-title { font-family:var(--font-display); font-size:1.2rem; font-weight:400; font-style:italic; color:var(--gold); margin-bottom:14px; display:flex; align-items:center; gap:12px; }
   .section-title::after { content:''; flex:1; height:1px; background:linear-gradient(to right,rgba(201,168,76,0.25),transparent); }
 
-  /* Grille des groupes */
   .groups-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(380px,1fr)); gap:16px; }
-
-  /* Groupe card */
   .group-card { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); overflow:hidden; }
   .group-header { background:rgba(201,168,76,0.07); border-bottom:1px solid rgba(201,168,76,0.12); padding:10px 16px; display:flex; align-items:center; justify-content:space-between; }
   .group-name { font-family:var(--font-display); font-size:1.05rem; font-weight:600; letter-spacing:0.12em; color:var(--gold); text-transform:uppercase; }
 
-  /* Tableau classement */
   .standings-table { width:100%; border-collapse:collapse; }
   .standings-table th { font-size:0.58rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); padding:7px 8px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.05); }
   .standings-table th.th-team { text-align:left; padding-left:14px; }
@@ -80,7 +101,6 @@ const CSS = `
   .team-name-cell { font-weight:600; letter-spacing:0.03em; font-size:0.78rem; }
   .pts-cell { font-family:var(--font-display); font-size:1rem; font-weight:600; color:var(--gold); }
 
-  /* Matchs du groupe */
   .group-matches { border-top:1px solid rgba(255,255,255,0.05); }
   .group-match-row { display:grid; grid-template-columns:1fr auto 1fr auto; align-items:center; gap:8px; padding:9px 14px; border-bottom:1px solid rgba(255,255,255,0.03); font-size:0.8rem; }
   .group-match-row:last-child { border-bottom:none; }
@@ -92,7 +112,6 @@ const CSS = `
   .live-dot { display:inline-block; width:5px; height:5px; background:#e07060; border-radius:50%; margin-right:3px; animation:pulse 1.2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
 
-  /* Phase finale */
   .knockout-stage { margin-bottom:28px; }
   .knockout-match { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:14px 18px; margin-bottom:8px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px; transition:border-color var(--transition); }
   .knockout-match:hover { border-color:rgba(201,168,76,0.22); }
@@ -102,14 +121,12 @@ const CSS = `
   .ko-score { font-family:var(--font-display); font-size:1.5rem; font-weight:600; color:var(--gold); text-align:center; }
   .ko-score.pending { color:var(--gray); font-family:var(--font-body); font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; }
 
-  /* Pronostics par journée */
   .matchday-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
   .matchday-tab { padding:6px 14px; background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:2px; cursor:pointer; font-family:var(--font-body); font-size:0.68rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--gray); transition:all var(--transition); }
   .matchday-tab.active { background:rgba(201,168,76,0.1); border-color:rgba(201,168,76,0.3); color:var(--gold); }
   .matchday-tab.done { color:var(--gold-dim); border-color:rgba(201,168,76,0.15); }
   .matchday-tab:hover:not(.active) { color:var(--cream); }
 
-  /* Carte pronostic */
   .prono-card { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:16px 18px; margin-bottom:10px; position:relative; overflow:hidden; transition:border-color var(--transition); }
   .prono-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:transparent; transition:background var(--transition); }
   .prono-card:hover { border-color:rgba(201,168,76,0.2); }
@@ -141,7 +158,6 @@ const CSS = `
   .pts-1 { background:rgba(201,168,76,0.06); color:var(--gold); border:1px solid rgba(201,168,76,0.15); }
   .pts-0 { background:rgba(255,255,255,0.04); color:var(--gray); border:1px solid rgba(255,255,255,0.07); }
 
-  /* Auth */
   .auth-wrap { min-height:72vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; }
   .auth-hero { text-align:center; }
   .auth-hero h1 { font-family:var(--font-display); font-size:clamp(3rem,10vw,5.5rem); font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--cream); line-height:1; }
@@ -162,7 +178,6 @@ const CSS = `
   .btn-ghost:hover { background:rgba(201,168,76,0.05); color:var(--cream); transform:none; }
   .error-msg { background:rgba(192,57,43,0.1); border:1px solid rgba(192,57,43,0.25); border-radius:var(--radius); padding:10px 14px; font-size:0.78rem; color:#d07060; margin-bottom:14px; }
 
-  /* Classement */
   .podium { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:24px; align-items:end; }
   .podium-card { background:var(--coal); border-radius:var(--radius); padding:16px 12px; text-align:center; border:1px solid rgba(201,168,76,0.1); position:relative; overflow:hidden; }
   .podium-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:rgba(201,168,76,0.12); }
@@ -184,7 +199,6 @@ const CSS = `
   .rank-total { font-family:var(--font-display); font-size:1.4rem; font-weight:600; color:var(--gold); text-align:right; }
   .rank-total span { font-family:var(--font-body); font-size:0.65rem; color:var(--gray); margin-left:2px; }
 
-  /* Bonus */
   .bonus-intro { background:var(--coal); border:1px solid rgba(201,168,76,0.15); border-radius:var(--radius); padding:20px 24px; margin-bottom:24px; position:relative; }
   .bonus-intro::before { content:''; position:absolute; top:0; left:24px; right:24px; height:1px; background:linear-gradient(to right,transparent,var(--gold),transparent); }
   .bonus-intro p { font-size:0.8rem; color:var(--gray); line-height:1.7; }
@@ -221,7 +235,6 @@ const CSS = `
   .bonus-confirmed-badge::before { content:'✦'; font-size:0.6rem; }
   .bonus-locked-msg { padding:0 20px 14px; font-size:0.7rem; color:var(--gray); text-transform:uppercase; font-style:italic; }
 
-  /* Utilitaires */
   .empty { text-align:center; padding:48px 0; color:var(--gray); font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; }
   .empty-icon { font-size:2rem; margin-bottom:10px; opacity:0.5; }
   .spinner { width:22px; height:22px; border:1px solid rgba(201,168,76,0.15); border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; margin:40px auto; }
@@ -230,7 +243,6 @@ const CSS = `
   .q-dot { width:8px; height:8px; border-radius:50%; background:var(--green-q); flex-shrink:0; }
 `;
 
-// ─── API ──────────────────────────────────────────────────────────────────────
 const API_BASE = "/api";
 async function apiCall(endpoint, options = {}, token = null) {
   const headers = { "Content-Type": "application/json" };
@@ -241,7 +253,6 @@ async function apiCall(endpoint, options = {}, token = null) {
   return data;
 }
 
-// ─── Utilitaires ──────────────────────────────────────────────────────────────
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString("fr-FR", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit", timeZone:"Europe/Paris" });
 }
@@ -258,7 +269,6 @@ function ptsClass(pts) {
   return "points-badge pts-0";
 }
 
-// ─── Bonus questions ─────────────────────────────────────────────────────────
 const BONUS_QUESTIONS = [
   { id:"winner", label:"Question Bonus I", title:"Quel pays remportera la Coupe du Monde 2026 ?", points:15, lockDate:"2026-06-11T18:00:00Z",
     choices:[{id:"FRA",flag:"🇫🇷",label:"France"},{id:"BRA",flag:"🇧🇷",label:"Brésil"},{id:"ARG",flag:"🇦🇷",label:"Argentine"},{id:"ENG",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",label:"Angleterre"},{id:"ESP",flag:"🇪🇸",label:"Espagne"},{id:"GER",flag:"🇩🇪",label:"Allemagne"},{id:"POR",flag:"🇵🇹",label:"Portugal"},{id:"MAR",flag:"🇲🇦",label:"Maroc"},{id:"USA",flag:"🇺🇸",label:"États-Unis"},{id:"NED",flag:"🇳🇱",label:"Pays-Bas"}]
@@ -272,7 +282,6 @@ const BONUS_QUESTIONS = [
 // COMPOSANTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
 function AuthScreen({ onLogin }) {
   const [mode,setMode]=useState("login");
   const [username,setUsername]=useState("");
@@ -309,7 +318,6 @@ function AuthScreen({ onLogin }) {
   );
 }
 
-// ── Calcul classement d'un groupe ─────────────────────────────────────────────
 function calcStandings(groupName, allMatches) {
   const gms = allMatches.filter(m => m.group_name===groupName && m.stage==="GROUP_STAGE");
   const teams = {};
@@ -330,15 +338,12 @@ function calcStandings(groupName, allMatches) {
   return Object.values(teams).sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)||b.gf-a.gf);
 }
 
-// ── Vue Groupes ───────────────────────────────────────────────────────────────
 function GroupsView({ matches }) {
   const groupMatches = matches.filter(m=>m.stage==="GROUP_STAGE"&&m.group_name);
   const groups = [...new Set(groupMatches.map(m=>m.group_name))].sort();
-
   if (groups.length===0) return (
     <div className="empty"><div className="empty-icon">⚽</div>Les groupes seront disponibles dès le début du tournoi.</div>
   );
-
   return (
     <div className="groups-grid">
       {groups.map(g => {
@@ -347,18 +352,10 @@ function GroupsView({ matches }) {
         const hasResults = standings.some(s=>s.j>0);
         return (
           <div className="group-card" key={g}>
-            <div className="group-header">
-              <div className="group-name">{groupLabel(g)}</div>
-            </div>
-
-            {/* Classement */}
+            <div className="group-header"><div className="group-name">{groupLabel(g)}</div></div>
             <table className="standings-table">
               <thead>
-                <tr>
-                  <th className="th-team">Équipe</th>
-                  <th>J</th><th>G</th><th>N</th><th>P</th>
-                  <th>Diff</th><th>Pts</th>
-                </tr>
+                <tr><th className="th-team">Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>Diff</th><th>Pts</th></tr>
               </thead>
               <tbody>
                 {standings.map((s,i) => (
@@ -366,12 +363,9 @@ function GroupsView({ matches }) {
                     <td className="td-team">
                       <span className={`rank-badge ${i<2?"q":""}`}>{i+1}</span>
                       <span className="team-flag">{flag(s.name)}</span>
-                      <span className="team-name-cell">{s.name}</span>
+                      <span className="team-name-cell">{teamName(s.name)}</span>
                     </td>
-                    <td>{s.j}</td>
-                    <td>{s.g}</td>
-                    <td>{s.n}</td>
-                    <td>{s.p}</td>
+                    <td>{s.j}</td><td>{s.g}</td><td>{s.n}</td><td>{s.p}</td>
                     <td style={{color:s.gf-s.ga>0?"var(--gold-light)":s.gf-s.ga<0?"#d07060":"var(--gray)"}}>
                       {s.j>0?(s.gf-s.ga>0?"+":"")+(s.gf-s.ga):"—"}
                     </td>
@@ -380,30 +374,20 @@ function GroupsView({ matches }) {
                 ))}
               </tbody>
             </table>
-            {hasResults && (
-              <div className="qualified-legend">
-                <div className="q-dot"/><span>Qualifié pour les huitièmes</span>
-              </div>
-            )}
-
-            {/* Matchs */}
+            {hasResults && <div className="qualified-legend"><div className="q-dot"/><span>Qualifié pour les huitièmes</span></div>}
             <div className="group-matches">
               {gMs.map(m => (
                 <div className="group-match-row" key={m.id}>
                   <div className="gm-home">
-                    <span>{m.home_team}</span>
+                    <span>{teamName(m.home_team)}</span>
                     <span>{flag(m.home_team)}</span>
                   </div>
-                  {m.status==="finished" ? (
-                    <div className="gm-score">{m.score_home}–{m.score_away}</div>
-                  ) : m.status==="live" ? (
-                    <div className="gm-score"><span className="live-dot"/>Live</div>
-                  ) : (
-                    <div className="gm-score pending">vs</div>
-                  )}
+                  {m.status==="finished" ? <div className="gm-score">{m.score_home}–{m.score_away}</div>
+                    : m.status==="live" ? <div className="gm-score"><span className="live-dot"/>Live</div>
+                    : <div className="gm-score pending">vs</div>}
                   <div className="gm-away">
                     <span>{flag(m.away_team)}</span>
-                    <span>{m.away_team}</span>
+                    <span>{teamName(m.away_team)}</span>
                   </div>
                   <div className="gm-date">{formatDateShort(m.kickoff)}</div>
                 </div>
@@ -416,16 +400,13 @@ function GroupsView({ matches }) {
   );
 }
 
-// ── Vue Phase finale ──────────────────────────────────────────────────────────
 function KnockoutView({ matches }) {
   const stageOrder = ["ROUND_OF_16","QUARTER_FINALS","SEMI_FINALS","THIRD_PLACE","FINAL"];
   const knockoutMatches = matches.filter(m=>m.stage!=="GROUP_STAGE");
   const byStage = stageOrder.filter(s=>knockoutMatches.some(m=>m.stage===s));
-
   if (byStage.length===0) return (
     <div className="empty"><div className="empty-icon">🏆</div>La phase finale débutera après les matchs de groupes.</div>
   );
-
   return (
     <div>
       {byStage.map(stage => (
@@ -434,19 +415,15 @@ function KnockoutView({ matches }) {
           {knockoutMatches.filter(m=>m.stage===stage).sort((a,b)=>new Date(a.kickoff)-new Date(b.kickoff)).map(m => (
             <div className="knockout-match" key={m.id}>
               <div className="ko-team home">
-                <span>{m.home_team||"À déterminer"}</span>
+                <span>{teamName(m.home_team)||"À déterminer"}</span>
                 <span style={{fontSize:"1.3rem"}}>{flag(m.home_team)}</span>
               </div>
-              {m.status==="finished" ? (
-                <div className="ko-score">{m.score_home}–{m.score_away}</div>
-              ) : m.status==="live" ? (
-                <div className="ko-score" style={{color:"#d07060"}}><span className="live-dot"/>Live</div>
-              ) : (
-                <div className="ko-score pending">{formatDateShort(m.kickoff)}</div>
-              )}
+              {m.status==="finished" ? <div className="ko-score">{m.score_home}–{m.score_away}</div>
+                : m.status==="live" ? <div className="ko-score" style={{color:"#d07060"}}><span className="live-dot"/>Live</div>
+                : <div className="ko-score pending">{formatDateShort(m.kickoff)}</div>}
               <div className="ko-team away">
                 <span style={{fontSize:"1.3rem"}}>{flag(m.away_team)}</span>
-                <span>{m.away_team||"À déterminer"}</span>
+                <span>{teamName(m.away_team)||"À déterminer"}</span>
               </div>
             </div>
           ))}
@@ -456,7 +433,6 @@ function KnockoutView({ matches }) {
   );
 }
 
-// ── Résultats ─────────────────────────────────────────────────────────────────
 function ResultsScreen({ matches, loading }) {
   const [subTab,setSubTab]=useState("groupes");
   if (loading) return <div className="spinner"/>;
@@ -472,7 +448,6 @@ function ResultsScreen({ matches, loading }) {
   );
 }
 
-// ── Carte pronostic ───────────────────────────────────────────────────────────
 function PronoCard({ match, prediction, token, onPredicted }) {
   const [home,setHome]=useState(prediction?.pred_home??"");
   const [away,setAway]=useState(prediction?.pred_away??"");
@@ -495,26 +470,22 @@ function PronoCard({ match, prediction, token, onPredicted }) {
   return (
     <div className={`prono-card ${locked?"locked":""}`}>
       <div className="prono-header">
-        <div className="prono-meta">
-          {match.group_name?groupLabel(match.group_name)+" · ":""}{formatDate(match.kickoff)}
-        </div>
+        <div className="prono-meta">{match.group_name?groupLabel(match.group_name)+" · ":""}{formatDate(match.kickoff)}</div>
         <span className={`status-pill status-${match.status}`}>
           {match.status==="live"?"En direct":match.status==="finished"?"Terminé":"À venir"}
         </span>
       </div>
       <div className="prono-teams">
         <div className="prono-team home">
-          <span>{match.home_team}</span>
+          <span>{teamName(m.home_team)}</span>
           <span className="prono-flag">{flag(match.home_team)}</span>
         </div>
-        {match.status==="finished" ? (
-          <div className="prono-score-display">{match.score_home}–{match.score_away}</div>
-        ) : (
-          <div className="prono-score-display pending">vs</div>
-        )}
+        {match.status==="finished"
+          ? <div className="prono-score-display">{match.score_home}–{match.score_away}</div>
+          : <div className="prono-score-display pending">vs</div>}
         <div className="prono-team away">
           <span className="prono-flag">{flag(match.away_team)}</span>
-          <span>{match.away_team}</span>
+          <span>{teamName(match.away_team)}</span>
         </div>
       </div>
       {!locked ? (
@@ -523,9 +494,7 @@ function PronoCard({ match, prediction, token, onPredicted }) {
           <input className="score-input" type="number" min="0" max="20" value={home} onChange={e=>setHome(e.target.value)} placeholder="0"/>
           <span className="score-sep">–</span>
           <input className="score-input" type="number" min="0" max="20" value={away} onChange={e=>setAway(e.target.value)} placeholder="0"/>
-          <button className="btn-predict" onClick={handlePredict} disabled={saving}>
-            {saving?"...":prediction?"Modifier":"Valider"}
-          </button>
+          <button className="btn-predict" onClick={handlePredict} disabled={saving}>{saving?"...":prediction?"Modifier":"Valider"}</button>
         </div>
       ) : prediction ? (
         <div className="prono-input-row">
@@ -545,11 +514,9 @@ function PronoCard({ match, prediction, token, onPredicted }) {
   );
 }
 
-// ── Pronostics ────────────────────────────────────────────────────────────────
 function PredictionsScreen({ matches, loading, token }) {
   const [predictions,setPredictions]=useState({});
   const [activeDay,setActiveDay]=useState(null);
-
   const groupMatches = matches.filter(m=>m.stage==="GROUP_STAGE"&&m.matchday);
   const days = [...new Set(groupMatches.map(m=>m.matchday))].sort((a,b)=>a-b);
   const knockoutMatches = matches.filter(m=>m.stage!=="GROUP_STAGE");
@@ -572,7 +539,6 @@ function PredictionsScreen({ matches, loading, token }) {
   }
 
   if (loading) return <div className="spinner"/>;
-
   const currentMatches = activeDay?groupMatches.filter(m=>m.matchday===activeDay):[];
 
   return (
@@ -605,7 +571,6 @@ function PredictionsScreen({ matches, loading, token }) {
   );
 }
 
-// ── Classement ────────────────────────────────────────────────────────────────
 function RankingScreen({ currentUser }) {
   const [ranking,setRanking]=useState([]);
   const [loading,setLoading]=useState(true);
@@ -649,7 +614,6 @@ function RankingScreen({ currentUser }) {
   );
 }
 
-// ── Bonus ─────────────────────────────────────────────────────────────────────
 function BonusScreen({ token }) {
   const [answers,setAnswers]=useState({});
   const [confirmed,setConfirmed]=useState({});
@@ -721,19 +685,20 @@ function BonusScreen({ token }) {
 // APP ROOT
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function App() {
-  const [user,setUser]=useState(null);
-  const [token,setToken]=useState(null);
-  const [tab,setTab]=useState("resultats");
-  const [matches,setMatches]=useState([]);
-  const [loading,setLoading]=useState(true);
+  const [user,setUser]           = useState(null);
+  const [token,setToken]         = useState(null);
+  const [tab,setTab]             = useState("resultats");
+  const [matches,setMatches]     = useState([]);
+  const [loading,setLoading]     = useState(true);
+  const [showAdmin,setShowAdmin] = useState(false);
 
   useEffect(()=>{
     if (!user) return;
     apiCall("/matches").then(d=>setMatches(d.matches||[])).catch(console.error).finally(()=>setLoading(false));
   },[user]);
 
-  function handleLogin(u,t){setUser(u);setToken(t);}
-  function handleLogout(){setUser(null);setToken(null);setMatches([]);setLoading(true);}
+  function handleLogin(u,t){ setUser(u); setToken(t); }
+  function handleLogout(){ setUser(null); setToken(null); setMatches([]); setLoading(true); setShowAdmin(false); }
 
   return (
     <>
@@ -745,6 +710,11 @@ export default function App() {
             <div className="user-pill">
               <div className="avatar">{user.username[0].toUpperCase()}</div>
               <span>{user.username}</span>
+              {user.role==='admin' && (
+                <button className="btn-logout" onClick={()=>setShowAdmin(true)} style={{color:'var(--gold-dim)'}}>
+                  Admin
+                </button>
+              )}
               <button className="btn-logout" onClick={handleLogout}>Déconnexion</button>
             </div>
           ) : (
@@ -754,16 +724,22 @@ export default function App() {
 
         {!user ? <AuthScreen onLogin={handleLogin}/> : (
           <>
-            <div className="tabs-main">
-              <button className={`tab-main ${tab==="resultats"?"active":""}`} onClick={()=>setTab("resultats")}>Résultats</button>
-              <button className={`tab-main ${tab==="pronostics"?"active":""}`} onClick={()=>setTab("pronostics")}>Pronostics</button>
-              <button className={`tab-main ${tab==="bonus"?"active":""}`} onClick={()=>setTab("bonus")}>Bonus</button>
-              <button className={`tab-main ${tab==="classement"?"active":""}`} onClick={()=>setTab("classement")}>Classement</button>
-            </div>
-            {tab==="resultats"  && <ResultsScreen matches={matches} loading={loading}/>}
-            {tab==="pronostics" && <PredictionsScreen matches={matches} loading={loading} token={token}/>}
-            {tab==="bonus"      && <BonusScreen token={token}/>}
-            {tab==="classement" && <RankingScreen currentUser={user}/>}
+            {showAdmin ? (
+              <AdminScreen onBack={()=>setShowAdmin(false)}/>
+            ) : (
+              <>
+                <div className="tabs-main">
+                  <button className={`tab-main ${tab==="resultats"?"active":""}`} onClick={()=>setTab("resultats")}>Résultats</button>
+                  <button className={`tab-main ${tab==="pronostics"?"active":""}`} onClick={()=>setTab("pronostics")}>Pronostics</button>
+                  <button className={`tab-main ${tab==="bonus"?"active":""}`} onClick={()=>setTab("bonus")}>Bonus</button>
+                  <button className={`tab-main ${tab==="classement"?"active":""}`} onClick={()=>setTab("classement")}>Classement</button>
+                </div>
+                {tab==="resultats"  && <ResultsScreen matches={matches} loading={loading}/>}
+                {tab==="pronostics" && <PredictionsScreen matches={matches} loading={loading} token={token}/>}
+                {tab==="bonus"      && <BonusScreen token={token}/>}
+                {tab==="classement" && <RankingScreen currentUser={user}/>}
+              </>
+            )}
           </>
         )}
       </div>

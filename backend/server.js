@@ -1,7 +1,8 @@
 // server.js
-require('dotenv').config(); // Charge les variables du fichier .env
+require('dotenv').config();
 
 const express = require('express');
+const path    = require('path');
 const app     = express();
 
 // Permet à Express de lire le JSON envoyé par le frontend
@@ -15,15 +16,15 @@ app.use('/api', require('./routes/ranking'));
 const authMiddleware = require('./middlewares/auth');
 app.use('/api', authMiddleware, require('./routes/predict'));
 
-// ── Route de test — pour vérifier que le serveur fonctionne ───────────────
-app.get('/', (req, res) => {
+// ── Route de test ──────────────────────────────────────────────────────────
+app.get('/api', (req, res) => {
   res.json({ message: '🚀 Serveur Pronos CDM opérationnel !' });
 });
 
-// ── Cron jobs — synchronisation automatique des matchs ────────────────────
+// ── Cron jobs ──────────────────────────────────────────────────────────────
 require('./jobs/syncMatches');
 
-// ── Route admin : sync manuelle depuis le panneau admin ───────────────────
+// ── Route admin : sync manuelle ────────────────────────────────────────────
 const { syncMatches } = require('./jobs/syncMatches');
 app.post('/api/admin/sync', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') {
@@ -33,7 +34,14 @@ app.post('/api/admin/sync', authMiddleware, async (req, res) => {
   res.json({ message: 'Synchronisation terminée.' });
 });
 
-// ── Démarrage du serveur ───────────────────────────────────────────────────
+// ── Sert le frontend React buildé en production ────────────────────────────
+// En local Vite tourne séparément, mais en prod Railway sert les fichiers buildés
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
+
+// ── Démarrage ──────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Serveur prêt sur http://localhost:${PORT}`);

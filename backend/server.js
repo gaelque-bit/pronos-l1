@@ -5,14 +5,13 @@ const express = require('express');
 const path    = require('path');
 const app     = express();
 
-// Permet à Express de lire le JSON envoyé par le frontend
 app.use(express.json());
 
-// ── Routes publiques (pas besoin d'être connecté) ──────────────────────────
+// ── Routes publiques ───────────────────────────────────────────────────────
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/ranking'));
 
-// ── Routes protégées (token JWT obligatoire) ───────────────────────────────
+// ── Routes protégées ───────────────────────────────────────────────────────
 const authMiddleware = require('./middlewares/auth');
 app.use('/api', authMiddleware, require('./routes/predict'));
 
@@ -24,7 +23,7 @@ app.get('/api', (req, res) => {
 // ── Cron jobs ──────────────────────────────────────────────────────────────
 require('./jobs/syncMatches');
 
-// ── Route admin : sync manuelle ────────────────────────────────────────────
+// ── Route admin ────────────────────────────────────────────────────────────
 const { syncMatches } = require('./jobs/syncMatches');
 app.post('/api/admin/sync', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') {
@@ -34,11 +33,12 @@ app.post('/api/admin/sync', authMiddleware, async (req, res) => {
   res.json({ message: 'Synchronisation terminée.' });
 });
 
-// ── Sert le frontend React buildé en production ────────────────────────────
-// En local Vite tourne séparément, mais en prod Railway sert les fichiers buildés
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
+// ── Frontend ───────────────────────────────────────────────────────────────
+const distPath = path.join(__dirname, '../frontend/dist');
+console.log('📁 Chemin frontend dist:', distPath);
+app.use(express.static(distPath));
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 // ── Démarrage ──────────────────────────────────────────────────────────────

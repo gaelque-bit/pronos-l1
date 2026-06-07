@@ -34,8 +34,8 @@ app.post('/api/admin/sync', authMiddleware, async (req, res) => {
 });
 
 // ── Frontend ───────────────────────────────────────────────────────────────
-// __dirname = /app/backend sur Railway, donc ../frontend/dist = /app/frontend/dist
-const distPath = path.join(__dirname, '../frontend/dist');
+// Le dossier dist est copié directement dans backend/
+const distPath = path.join(__dirname, 'dist');
 console.log('📁 Chemin frontend dist:', distPath);
 app.use(express.static(distPath));
 app.get('*', (req, res) => {

@@ -34,7 +34,11 @@ app.post('/api/admin/sync', authMiddleware, async (req, res) => {
 });
 
 // ── Frontend ───────────────────────────────────────────────────────────────
-const distPath = path.join(__dirname, '../frontend/dist');
+// Sur Railway __dirname = '/', en local = '.../backend'
+const distPath = process.env.RAILWAY_ENVIRONMENT
+  ? '/app/frontend/dist'
+  : path.join(__dirname, '../frontend/dist');
+
 console.log('📁 Chemin frontend dist:', distPath);
 app.use(express.static(distPath));
 app.get('*', (req, res) => {

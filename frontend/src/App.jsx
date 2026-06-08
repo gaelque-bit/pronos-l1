@@ -187,8 +187,6 @@ const CSS = `
   .rank-detail { font-size:0.7rem; color:var(--gray); margin-top:2px; }
   .rank-total { font-family:var(--font-display); font-size:1.4rem; font-weight:600; color:var(--gold); text-align:right; }
   .rank-total span { font-family:var(--font-body); font-size:0.65rem; color:var(--gray); margin-left:2px; }
-
-  /* Distinctions */
   .distinctions-grid { display:flex; flex-direction:column; gap:8px; }
   .distinction-card { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:14px 18px; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px; transition:border-color var(--transition); }
   .distinction-card:hover { border-color:rgba(201,168,76,0.22); }
@@ -197,7 +195,6 @@ const CSS = `
   .distinction-winner { font-family:var(--font-display); font-size:1.1rem; font-weight:600; color:var(--cream); letter-spacing:0.04em; }
   .distinction-winner.empty { color:var(--gray); font-style:italic; font-size:0.82rem; font-family:var(--font-body); }
   .distinction-detail { font-size:0.72rem; color:var(--gold); font-weight:600; letter-spacing:0.08em; text-align:right; white-space:nowrap; }
-
   .bonus-intro { background:var(--coal); border:1px solid rgba(201,168,76,0.15); border-radius:var(--radius); padding:20px 24px; margin-bottom:24px; position:relative; }
   .bonus-intro::before { content:''; position:absolute; top:0; left:24px; right:24px; height:1px; background:linear-gradient(to right,transparent,var(--gold),transparent); }
   .bonus-intro p { font-size:0.8rem; color:var(--gray); line-height:1.7; }
@@ -275,6 +272,18 @@ const BONUS_QUESTIONS = [
   { id:"topscorer", label:"Question Bonus II", title:"Qui sera le meilleur buteur du tournoi ?", points:10, lockDate:"2026-06-11T18:00:00Z",
     choices:[{id:"MBP",flag:"🇫🇷",label:"Kylian Mbappé"},{id:"VIN",flag:"🇧🇷",label:"Vinícius Jr."},{id:"LAU",flag:"🇦🇷",label:"Lautaro Martínez"},{id:"KAN",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",label:"Harry Kane"},{id:"YAM",flag:"🇪🇸",label:"Lamine Yamal"},{id:"KAI",flag:"🇩🇪",label:"Kai Havertz"},{id:"LEW",flag:"🇵🇱",label:"Robert Lewandowski"},{id:"OSI",flag:"🇳🇬",label:"Victor Osimhen"},{id:"PUL",flag:"🇺🇸",label:"Christian Pulisic"},{id:"ARD",flag:"🇹🇷",label:"Arda Güler"}]
   },
+];
+
+const DEFAULT_DISTINCTIONS = [
+  { emoji:"🥇", label:"Champion des Pronos", username:null, detail:"—" },
+  { emoji:"🏆", label:"Roi du Score Exact", username:null, detail:"—" },
+  { emoji:"🎯", label:"Roi des Bonus Saison", username:null, detail:"—" },
+  { emoji:"⚽", label:"Meilleur · Phase aller", username:null, detail:"—" },
+  { emoji:"⚽", label:"Meilleur · Phase retour", username:null, detail:"—" },
+  { emoji:"📈", label:"Plus forte progression", username:null, detail:"—" },
+  { emoji:"🔥", label:"Meilleure série de journées", username:null, detail:"—" },
+  { emoji:"🥴", label:"Lanterne Rouge", username:null, detail:"—" },
+  { emoji:"🇫🇷", label:"Meilleur pronostic France", username:null, detail:"—" },
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -619,27 +628,25 @@ function DistinctionsScreen({ token }) {
 
   if (loading) return <div className="spinner"/>;
 
+  const display = distinctions.length > 0 ? distinctions : DEFAULT_DISTINCTIONS;
+
   return (
     <div>
       <div className="section-title" style={{marginTop:8}}>Distinctions</div>
-      {distinctions.length===0 ? (
-        <div className="empty"><div className="empty-icon">🏅</div>Les distinctions seront disponibles dès le début du tournoi.</div>
-      ) : (
-        <div className="distinctions-grid">
-          {distinctions.map((d,i)=>(
-            <div className="distinction-card" key={i}>
-              <div className="distinction-emoji">{d.emoji}</div>
-              <div>
-                <div className="distinction-label">{d.label}</div>
-                <div className={`distinction-winner ${!d.username?"empty":""}`}>
-                  {d.username || "—"}
-                </div>
+      <div className="distinctions-grid">
+        {display.map((d,i)=>(
+          <div className="distinction-card" key={i}>
+            <div className="distinction-emoji">{d.emoji}</div>
+            <div>
+              <div className="distinction-label">{d.label}</div>
+              <div className={`distinction-winner ${!d.username?"empty":""}`}>
+                {d.username || "À déterminer"}
               </div>
-              <div className="distinction-detail">{d.detail}</div>
             </div>
-          ))}
-        </div>
-      )}
+            <div className="distinction-detail">{d.detail}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -667,8 +674,8 @@ function RankingScreen({ currentUser, token }) {
 
       {subTab==="classement" && (
         <>
-          {top3.length>=2&&(<>
-            <div className="section-title">Podium</div>
+          <div className="section-title">Podium</div>
+          {top3.length >= 2 ? (
             <div className="podium">
               {podium.map(p=>p&&(
                 <div key={p.id} className={`podium-card rank-${p.rang}`}>
@@ -680,21 +687,38 @@ function RankingScreen({ currentUser, token }) {
                 </div>
               ))}
             </div>
-          </>)}
-          <div className="section-title">Classement complet</div>
-          <div className="rank-list">
-            {ranking.map(row=>(
-              <div key={row.id} className={`rank-row ${row.id===currentUser?.id?"me":""}`}>
-                <div className="rank-num">{row.rang}</div>
-                <div>
-                  <div className="rank-username">{row.username}{row.id===currentUser?.id&&<span style={{fontSize:"0.68rem",color:"var(--gold)",marginLeft:8}}>← toi</span>}</div>
-                  <div className="rank-detail">{row.pronos_joues} matchs · {row.scores_exacts} exacts{row.points_bonus>0?` · +${row.points_bonus} bonus`:""}</div>
+          ) : (
+            <div className="podium" style={{marginBottom:24}}>
+              {[2,1,3].map(rank=>(
+                <div key={rank} className={`podium-card rank-${rank}`} style={{opacity:0.3}}>
+                  {rank===1&&<div className="crown">🏆</div>}
+                  <div className="podium-rank">#{rank}</div>
+                  <div className="podium-name" style={{color:"var(--gray)"}}>—</div>
+                  <div className="podium-pts" style={{color:"var(--gray)"}}>—</div>
                 </div>
-                <div className="rank-total">{row.total}<span>pts</span></div>
-              </div>
-            ))}
-          </div>
-          {ranking.length===0&&<div className="empty"><div className="empty-icon">📊</div>Aucun point pour l'instant.</div>}
+              ))}
+            </div>
+          )}
+
+          <div className="section-title">Classement complet</div>
+          {ranking.length === 0 ? (
+            <div style={{background:"var(--coal)",border:"1px solid rgba(201,168,76,0.08)",borderRadius:"var(--radius)",padding:"20px 16px",color:"var(--gray)",fontSize:"0.78rem",textAlign:"center",letterSpacing:"0.08em",textTransform:"uppercase"}}>
+              Les points seront attribués dès le premier match terminé
+            </div>
+          ) : (
+            <div className="rank-list">
+              {ranking.map(row=>(
+                <div key={row.id} className={`rank-row ${row.id===currentUser?.id?"me":""}`}>
+                  <div className="rank-num">{row.rang}</div>
+                  <div>
+                    <div className="rank-username">{row.username}{row.id===currentUser?.id&&<span style={{fontSize:"0.68rem",color:"var(--gold)",marginLeft:8}}>← toi</span>}</div>
+                    <div className="rank-detail">{row.pronos_joues} matchs · {row.scores_exacts} exacts{row.points_bonus>0?` · +${row.points_bonus} bonus`:""}</div>
+                  </div>
+                  <div className="rank-total">{row.total}<span>pts</span></div>
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
 
@@ -709,12 +733,10 @@ function BonusScreen({ token }) {
   const [saving,setSaving]=useState({});
 
   function isLocked(q){return new Date()>=new Date(q.lockDate);}
-
   function handleSelect(qId,cId){
     if (confirmed[qId]||isLocked(BONUS_QUESTIONS.find(q=>q.id===qId))) return;
     setAnswers(a=>({...a,[qId]:cId}));
   }
-
   async function handleConfirm(question){
     const cId=answers[question.id]; if (!cId) return;
     setSaving(s=>({...s,[question.id]:true}));
@@ -724,15 +746,13 @@ function BonusScreen({ token }) {
     } catch(e){ console.error(e); }
     finally{setSaving(s=>({...s,[question.id]:false}));}
   }
-
   useEffect(()=>{
     apiCall("/bonus",{},token).then(d=>{
       if (d.bonus) {
         const c={};
         if (d.bonus.winner_id) c["winner"]=d.bonus.winner_id;
         if (d.bonus.top_scorer_id) c["topscorer"]=d.bonus.top_scorer_id;
-        setConfirmed(c);
-        setAnswers(c);
+        setConfirmed(c); setAnswers(c);
       }
     }).catch(()=>{});
   },[]);

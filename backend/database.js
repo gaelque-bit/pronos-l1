@@ -1,6 +1,7 @@
-// database.js
+require('dotenv').config();
 const Database = require('better-sqlite3');
-const db = new Database('pronos.db');
+const bcrypt   = require('bcrypt');
+const db       = new Database('pronos.db');
 
 db.pragma('foreign_keys = ON');
 
@@ -47,9 +48,17 @@ db.exec(`
   );
 `);
 
-// Migrations : ajoute les colonnes manquantes si elles n'existent pas
+// Migrations
 try { db.exec("ALTER TABLE matches ADD COLUMN group_name TEXT DEFAULT NULL"); } catch(e) {}
 try { db.exec("ALTER TABLE matches ADD COLUMN matchday INTEGER DEFAULT NULL"); } catch(e) {}
+
+// Création automatique du compte admin au démarrage
+const adminUser = db.prepare("SELECT id FROM users WHERE username = 'Gael'").get();
+if (!adminUser) {
+  const hash = bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'Gael2026', 12);
+  db.prepare("INSERT INTO users (username, password_hash, role) VALUES ('Gael', ?, 'admin')").run(hash);
+  console.log('✅ Compte admin Gael créé automatiquement');
+}
 
 console.log('✅ Base de données prête');
 

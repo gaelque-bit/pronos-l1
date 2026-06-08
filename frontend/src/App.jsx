@@ -280,6 +280,58 @@ const CSS = `
   .regles-bonus-desc { font-size:0.7rem; color:var(--gray); margin-top:2px; }
   .regles-bonus-pts { font-family:var(--font-display); font-size:1.3rem; font-weight:600; color:var(--gold); flex-shrink:0; }
   .regles-bonus-pts small { font-family:var(--font-body); font-size:0.6rem; color:var(--gray); display:block; text-align:right; }
+
+  /* ── Mobile ─────────────────────────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    .app { padding:0 12px 60px; }
+    .header { padding:16px 0 14px; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
+    .logo { font-size:1.2rem; }
+    .user-pill { padding:5px 12px 5px 6px; font-size:0.72rem; gap:7px; }
+    .avatar { width:24px; height:24px; font-size:0.85rem; }
+    .btn-logout { font-size:0.65rem; }
+    .tabs-main { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .tab-main { font-size:0.65rem; padding:12px 6px; letter-spacing:0.08em; min-width:72px; }
+    .tabs-sub { flex-wrap:wrap; }
+    .groups-grid { grid-template-columns:1fr; }
+    .group-match-row { font-size:0.72rem; padding:8px 10px; gap:4px; }
+    .standings-table th, .standings-table td { padding:6px 4px; font-size:0.68rem; }
+    .standings-table th.th-team, .standings-table td.td-team { padding-left:8px; }
+    .team-name-cell { font-size:0.68rem; }
+    .rank-badge { width:14px; height:14px; font-size:0.72rem; margin-right:4px; }
+    .prono-team { font-size:0.95rem; }
+    .prono-flag { font-size:1.1rem; }
+    .prono-score-display { font-size:1.2rem; min-width:40px; }
+    .prono-input-row { flex-wrap:wrap; gap:7px; }
+    .score-input { width:38px; height:30px; font-size:1rem; }
+    .btn-predict { padding:6px 12px; font-size:0.62rem; }
+    .bareme-inline { display:none; }
+    .bareme-rappel { gap:6px; padding:8px 10px; }
+    .bareme-rappel-item { font-size:0.62rem; }
+    .podium { gap:6px; }
+    .podium-card { padding:12px 8px; }
+    .podium-name { font-size:0.65rem; }
+    .podium-pts { font-size:1.1rem; }
+    .distinction-card { grid-template-columns:auto 1fr; gap:10px; }
+    .distinction-detail { display:none; }
+    .modal-overlay { padding:16px 12px; }
+    .modal-body { padding:16px 16px 24px; }
+    .modal-header { padding:18px 16px 0; }
+    .modal-title { font-size:1.2rem; }
+    .matchday-tabs { gap:4px; }
+    .matchday-tab { padding:5px 10px; font-size:0.62rem; }
+    .ko-team { font-size:0.9rem; }
+    .ko-score { font-size:1.2rem; }
+    .knockout-match { padding:10px 12px; gap:8px; }
+    .rank-row { grid-template-columns:36px 1fr auto; gap:10px; padding:10px 12px; }
+    .rank-num { font-size:1rem; }
+    .rank-username { font-size:0.75rem; }
+    .rank-total { font-size:1.2rem; }
+    .section-title { font-size:1rem; }
+    .bonus-q-title { font-size:1rem; }
+    .bonus-choices { padding:10px 14px 14px; }
+    .bonus-choice { padding:8px 10px; }
+    .auth-hero h1 { font-size:clamp(2.2rem,8vw,4rem); }
+  }
 `;
 
 const API_BASE = "/api";
@@ -599,7 +651,7 @@ function PronoCard({ match, prediction, token, onPredicted }) {
           <span className="score-sep">–</span>
           <input className="score-input" type="number" min="0" max="20" value={away} onChange={e=>setAway(e.target.value)} placeholder="0"/>
           <button className="btn-predict" onClick={handlePredict} disabled={saving}>{saving?"...":prediction?"Modifier":"Valider"}</button>
-          <span className="bareme-inline" title="Score exact: 6pts · Bonne différence: 4pts · Bon résultat: 2pts · Raté: 0pt">6·4·2·0</span>
+          <span className="bareme-inline" title="Score exact: 6pts · Bonne diff: 4pts · Bon résultat: 2pts">6·4·2·0</span>
         </div>
       ) : prediction ? (
         <div className="prono-input-row">
@@ -653,7 +705,6 @@ function PredictionsScreen({ matches, loading, token }) {
 
   return (
     <div>
-      {/* Rappel barème */}
       <div className="bareme-rappel">
         <span className="bareme-rappel-title">Barème ·</span>
         {[{pts:6,label:"Score exact",color:"var(--gold-light)"},{pts:4,label:"Bonne diff.",color:"var(--gold)"},{pts:2,label:"Bon résultat",color:"var(--gold-dim)"},{pts:0,label:"Raté",color:"var(--gray)"}].map((b,i,arr)=>(
@@ -664,7 +715,6 @@ function PredictionsScreen({ matches, loading, token }) {
           </span>
         ))}
       </div>
-
       {days.length>0 && (
         <>
           <div className="section-title">Phase de groupes</div>
@@ -792,8 +842,7 @@ function BonusScreen({ token }) {
     const cId=answers[question.id]; if (!cId) return;
     setSaving(s=>({...s,[question.id]:true}));
     try { await apiCall("/bonus",{method:"POST",body:JSON.stringify({questionId:question.id,answerId:cId})},token); setConfirmed(c=>({...c,[question.id]:cId})); }
-    catch(e){ console.error(e); }
-    finally{setSaving(s=>({...s,[question.id]:false}));}
+    catch(e){ console.error(e); } finally{setSaving(s=>({...s,[question.id]:false}));}
   }
   useEffect(()=>{
     apiCall("/bonus",{},token).then(d=>{

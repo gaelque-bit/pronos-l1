@@ -236,6 +236,54 @@ const CSS = `
   @keyframes spin { to { transform:rotate(360deg); } }
   .qualified-legend { font-size:0.62rem; color:var(--gray); padding:6px 14px 8px; letter-spacing:0.06em; display:flex; align-items:center; gap:6px; }
   .q-dot { width:8px; height:8px; border-radius:50%; background:var(--green-q); flex-shrink:0; }
+
+  /* Footer */
+  .footer { text-align:center; padding:32px 0 16px; border-top:1px solid rgba(201,168,76,0.08); margin-top:48px; }
+  .btn-regles { background:none; border:none; cursor:pointer; color:var(--gray); font-size:0.68rem; font-family:var(--font-body); letter-spacing:0.14em; text-transform:uppercase; transition:color var(--transition); }
+  .btn-regles:hover { color:var(--gold); }
+
+  /* Modal règles */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:9990; display:flex; align-items:flex-start; justify-content:center; padding:40px 20px; overflow-y:auto; }
+  .modal-box { background:var(--coal); border:1px solid rgba(201,168,76,0.2); border-radius:var(--radius); width:100%; max-width:620px; position:relative; }
+  .modal-box::before { content:''; position:absolute; top:0; left:28px; right:28px; height:1px; background:linear-gradient(to right,transparent,var(--gold),transparent); }
+  .modal-header { display:flex; align-items:center; justify-content:space-between; padding:24px 28px 0; }
+  .modal-title { font-family:var(--font-display); font-size:1.6rem; font-weight:600; color:var(--gold); letter-spacing:0.1em; }
+  .modal-close { background:none; border:none; cursor:pointer; color:var(--gray); font-size:1.4rem; line-height:1; transition:color var(--transition); }
+  .modal-close:hover { color:var(--cream); }
+  .modal-body { padding:24px 28px 32px; }
+  .modal-section { margin-bottom:28px; }
+  .modal-section:last-child { margin-bottom:0; }
+  .modal-section-title { font-family:var(--font-display); font-size:1.1rem; font-weight:400; font-style:italic; color:var(--gold); margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+  .modal-section-title::after { content:''; flex:1; height:1px; background:linear-gradient(to right,rgba(201,168,76,0.2),transparent); }
+
+  /* Tableau barème */
+  .bareme-table { width:100%; border-collapse:collapse; }
+  .bareme-table th { font-size:0.6rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--gray); padding:9px 14px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .bareme-table td { padding:10px 14px; font-size:0.8rem; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .bareme-table tr:last-child td { border-bottom:none; }
+  .bareme-pts { font-family:var(--font-display); font-size:1.2rem; font-weight:600; }
+  .bareme-pts.p6 { color:var(--gold-light); }
+  .bareme-pts.p4 { color:var(--gold); }
+  .bareme-pts.p2 { color:var(--gold-dim); }
+  .bareme-pts.p0 { color:var(--gray); }
+  .bareme-desc { color:var(--cream); }
+  .bareme-ex { color:var(--gray); font-size:0.72rem; margin-top:2px; }
+
+  /* Distinctions liste */
+  .regles-distinctions { display:flex; flex-direction:column; gap:6px; }
+  .regles-distinction { display:flex; align-items:flex-start; gap:12px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .regles-distinction:last-child { border-bottom:none; }
+  .regles-distinction-emoji { font-size:1.2rem; flex-shrink:0; }
+  .regles-distinction-label { font-size:0.8rem; font-weight:600; color:var(--cream); letter-spacing:0.04em; }
+  .regles-distinction-desc { font-size:0.72rem; color:var(--gray); margin-top:2px; }
+
+  /* Bonus règles */
+  .regles-bonus { display:flex; flex-direction:column; gap:10px; }
+  .regles-bonus-item { background:var(--charcoal); border:1px solid rgba(201,168,76,0.08); border-radius:var(--radius); padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .regles-bonus-title { font-size:0.8rem; font-weight:600; color:var(--cream); }
+  .regles-bonus-desc { font-size:0.7rem; color:var(--gray); margin-top:2px; }
+  .regles-bonus-pts { font-family:var(--font-display); font-size:1.3rem; font-weight:600; color:var(--gold); flex-shrink:0; }
+  .regles-bonus-pts small { font-family:var(--font-body); font-size:0.6rem; color:var(--gray); display:block; text-align:right; }
 `;
 
 const API_BASE = "/api";
@@ -285,6 +333,116 @@ const DEFAULT_DISTINCTIONS = [
   { emoji:"🥴", label:"Lanterne Rouge", username:null, detail:"—" },
   { emoji:"🇫🇷", label:"Meilleur pronostic France", username:null, detail:"—" },
 ];
+
+// ── Modal Règles ──────────────────────────────────────────────────────────────
+function ReglesModal({ onClose }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">Règles du jeu</div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+
+          {/* Barème */}
+          <div className="modal-section">
+            <div className="modal-section-title">Barème des points</div>
+            <table className="bareme-table">
+              <thead>
+                <tr><th>Pronostic</th><th>Points</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div className="bareme-desc">Score exact</div>
+                    <div className="bareme-ex">ex: tu pronostics 2-1, le score est 2-1</div>
+                  </td>
+                  <td><span className="bareme-pts p6">6</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div className="bareme-desc">Bon résultat + bonne différence de buts</div>
+                    <div className="bareme-ex">ex: tu pronostics 3-1, le score est 2-0</div>
+                  </td>
+                  <td><span className="bareme-pts p4">4</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div className="bareme-desc">Bon résultat uniquement</div>
+                    <div className="bareme-ex">ex: tu pronostics 2-0, le score est 1-0</div>
+                  </td>
+                  <td><span className="bareme-pts p2">2</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div className="bareme-desc">Mauvais résultat</div>
+                    <div className="bareme-ex">ex: tu pronostics 2-0, le score est 0-1</div>
+                  </td>
+                  <td><span className="bareme-pts p0">0</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Bonus */}
+          <div className="modal-section">
+            <div className="modal-section-title">Questions Bonus</div>
+            <p style={{fontSize:"0.78rem",color:"var(--gray)",marginBottom:12,lineHeight:1.6}}>
+              À soumettre <strong style={{color:"var(--cream)"}}>avant le 11 juin 18h</strong>. Aucune modification possible après.
+            </p>
+            <div className="regles-bonus">
+              <div className="regles-bonus-item">
+                <div>
+                  <div className="regles-bonus-title">🏆 Vainqueur de la Coupe du Monde</div>
+                  <div className="regles-bonus-desc">Quel pays soulèvera le trophée le 19 juillet ?</div>
+                </div>
+                <div className="regles-bonus-pts">15<small>pts</small></div>
+              </div>
+              <div className="regles-bonus-item">
+                <div>
+                  <div className="regles-bonus-title">⚽ Meilleur buteur du tournoi</div>
+                  <div className="regles-bonus-desc">Qui terminera meilleur buteur de la compétition ?</div>
+                </div>
+                <div className="regles-bonus-pts">10<small>pts</small></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Distinctions */}
+          <div className="modal-section">
+            <div className="modal-section-title">Distinctions</div>
+            <p style={{fontSize:"0.78rem",color:"var(--gray)",marginBottom:12,lineHeight:1.6}}>
+              En plus du classement général, des titres honorifiques sont décernés tout au long du tournoi.
+            </p>
+            <div className="regles-distinctions">
+              {[
+                { emoji:"🥇", label:"Champion des Pronos", desc:"Meilleur score total à la fin du tournoi" },
+                { emoji:"🏆", label:"Roi du Score Exact", desc:"Celui qui a le plus de scores exacts (6 pts)" },
+                { emoji:"🎯", label:"Roi des Bonus Saison", desc:"Meilleur score sur les questions bonus" },
+                { emoji:"⚽", label:"Meilleur · Phase aller", desc:"Meilleur score sur les journées 1 à 3" },
+                { emoji:"⚽", label:"Meilleur · Phase retour", desc:"Meilleur score sur les journées 4 à 6" },
+                { emoji:"📈", label:"Plus forte progression", desc:"La plus grande montée au classement entre la mi-tournoi et la fin" },
+                { emoji:"🔥", label:"Meilleure série", desc:"La plus longue série de journées remportées consécutivement" },
+                { emoji:"🥴", label:"Lanterne Rouge", desc:"Dernier du classement général" },
+                { emoji:"🇫🇷", label:"Meilleur pronostic France", desc:"Meilleur score sur les matchs de l'équipe de France" },
+              ].map((d,i)=>(
+                <div className="regles-distinction" key={i}>
+                  <div className="regles-distinction-emoji">{d.emoji}</div>
+                  <div>
+                    <div className="regles-distinction-label">{d.label}</div>
+                    <div className="regles-distinction-desc">{d.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // COMPOSANTS
@@ -556,11 +714,7 @@ function PredictionsScreen({ matches, loading, token }) {
   useEffect(()=>{
     if (!token||matches.length===0) return;
     apiCall("/predictions",{},token)
-      .then(d=>{
-        const map={};
-        (d.predictions||[]).forEach(p=>{ map[p.match_id]=p; });
-        setPredictions(map);
-      })
+      .then(d=>{ const map={}; (d.predictions||[]).forEach(p=>{ map[p.match_id]=p; }); setPredictions(map); })
       .catch(console.error)
       .finally(()=>setLoadingPredictions(false));
   },[matches,token]);
@@ -627,7 +781,6 @@ function DistinctionsScreen({ token }) {
   },[]);
 
   if (loading) return <div className="spinner"/>;
-
   const display = distinctions.length > 0 ? distinctions : DEFAULT_DISTINCTIONS;
 
   return (
@@ -639,9 +792,7 @@ function DistinctionsScreen({ token }) {
             <div className="distinction-emoji">{d.emoji}</div>
             <div>
               <div className="distinction-label">{d.label}</div>
-              <div className={`distinction-winner ${!d.username?"empty":""}`}>
-                {d.username || "À déterminer"}
-              </div>
+              <div className={`distinction-winner ${!d.username?"empty":""}`}>{d.username || "À déterminer"}</div>
             </div>
             <div className="distinction-detail">{d.detail}</div>
           </div>
@@ -662,7 +813,6 @@ function RankingScreen({ currentUser, token }) {
 
   const top3=ranking.filter(r=>r.rang<=3).slice(0,3);
   const podium=[top3[1],top3[0],top3[2]].filter(Boolean);
-
   if (loading) return <div className="spinner"/>;
 
   return (
@@ -671,7 +821,6 @@ function RankingScreen({ currentUser, token }) {
         <button className={`tab-sub ${subTab==="classement"?"active":""}`} onClick={()=>setSubTab("classement")}>Classement</button>
         <button className={`tab-sub ${subTab==="distinctions"?"active":""}`} onClick={()=>setSubTab("distinctions")}>Distinctions</button>
       </div>
-
       {subTab==="classement" && (
         <>
           <div className="section-title">Podium</div>
@@ -699,7 +848,6 @@ function RankingScreen({ currentUser, token }) {
               ))}
             </div>
           )}
-
           <div className="section-title">Classement complet</div>
           {ranking.length === 0 ? (
             <div style={{background:"var(--coal)",border:"1px solid rgba(201,168,76,0.08)",borderRadius:"var(--radius)",padding:"20px 16px",color:"var(--gray)",fontSize:"0.78rem",textAlign:"center",letterSpacing:"0.08em",textTransform:"uppercase"}}>
@@ -721,7 +869,6 @@ function RankingScreen({ currentUser, token }) {
           )}
         </>
       )}
-
       {subTab==="distinctions" && <DistinctionsScreen token={token}/>}
     </div>
   );
@@ -810,6 +957,7 @@ export default function App() {
   const [matches,setMatches]     = useState([]);
   const [loading,setLoading]     = useState(true);
   const [showAdmin,setShowAdmin] = useState(false);
+  const [showRegles,setShowRegles] = useState(false);
 
   useEffect(()=>{
     if (!user) return;
@@ -822,6 +970,7 @@ export default function App() {
   return (
     <>
       <style>{CSS}</style>
+      {showRegles && <ReglesModal onClose={()=>setShowRegles(false)}/>}
       <div className="app">
         <header className="header">
           <div className="logo">Pronos <span>2026</span></div>
@@ -838,6 +987,7 @@ export default function App() {
             <div style={{fontSize:"0.75rem",color:"var(--gray)",letterSpacing:"0.1em",textTransform:"uppercase"}}>Coupe du Monde 2026</div>
           )}
         </header>
+
         {!user ? <AuthScreen onLogin={handleLogin}/> : (
           <>
             {showAdmin ? <AdminScreen onBack={()=>setShowAdmin(false)}/> : (
@@ -856,6 +1006,12 @@ export default function App() {
             )}
           </>
         )}
+
+        <footer className="footer">
+          <button className="btn-regles" onClick={()=>setShowRegles(true)}>
+            📋 Règles du jeu
+          </button>
+        </footer>
       </div>
     </>
   );

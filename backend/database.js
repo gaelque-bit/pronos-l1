@@ -1,10 +1,7 @@
 // database.js
-// Ce fichier crée la connexion à SQLite et initialise toutes les tables.
-
 const Database = require('better-sqlite3');
 const db = new Database('pronos.db');
 
-// Active les clés étrangères (désactivé par défaut dans SQLite)
 db.pragma('foreign_keys = ON');
 
 db.exec(`
@@ -25,7 +22,9 @@ db.exec(`
     status      TEXT    DEFAULT 'scheduled',
     score_home  INTEGER DEFAULT NULL,
     score_away  INTEGER DEFAULT NULL,
-    stage       TEXT    DEFAULT 'GROUP_STAGE'
+    stage       TEXT    DEFAULT 'GROUP_STAGE',
+    group_name  TEXT    DEFAULT NULL,
+    matchday    INTEGER DEFAULT NULL
   );
 
   CREATE TABLE IF NOT EXISTS predictions (
@@ -47,6 +46,10 @@ db.exec(`
     points_bonus  INTEGER DEFAULT 0
   );
 `);
+
+// Migrations : ajoute les colonnes manquantes si elles n'existent pas
+try { db.exec("ALTER TABLE matches ADD COLUMN group_name TEXT DEFAULT NULL"); } catch(e) {}
+try { db.exec("ALTER TABLE matches ADD COLUMN matchday INTEGER DEFAULT NULL"); } catch(e) {}
 
 console.log('✅ Base de données prête');
 

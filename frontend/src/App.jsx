@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import AdminScreen from './AdminScreen';
 
-// ─── Drapeaux ─────────────────────────────────────────────────────────────────
 const FLAGS = {
   "Algeria":"🇩🇿","Argentina":"🇦🇷","Australia":"🇦🇺","Austria":"🇦🇹",
   "Belgium":"🇧🇪","Bosnia-H.":"🇧🇦","Bosnia-Herzegovina":"🇧🇦",
@@ -46,7 +45,6 @@ const TEAM_NAMES_FR = {
 const flag     = (name) => FLAGS[name] || "🏳️";
 const teamName = (name) => TEAM_NAMES_FR[name] || name;
 
-// ─── CSS ──────────────────────────────────────────────────────────────────────
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Josefin+Sans:wght@300;400;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -61,7 +59,6 @@ const CSS = `
   }
   body { background:var(--obsidian); color:var(--cream); font-family:var(--font-body); font-weight:300; letter-spacing:0.03em; min-height:100vh; background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(201,168,76,0.07) 0%,transparent 70%); }
   .app { max-width:900px; margin:0 auto; padding:0 20px 80px; }
-
   .header { padding:32px 0 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(201,168,76,0.18); margin-bottom:32px; }
   .logo { font-family:var(--font-display); font-size:1.7rem; font-weight:600; letter-spacing:0.18em; color:var(--gold); text-transform:uppercase; }
   .logo span { color:var(--cream); font-weight:400; font-style:italic; }
@@ -69,7 +66,6 @@ const CSS = `
   .avatar { width:28px; height:28px; background:var(--gold-dim); border:1px solid var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:1rem; color:var(--gold-light); }
   .btn-logout { background:none; border:none; cursor:pointer; color:var(--gray); font-size:0.72rem; letter-spacing:0.06em; padding:0; transition:color var(--transition); font-family:var(--font-body); }
   .btn-logout:hover { color:var(--red); }
-
   .tabs-main { display:flex; border-bottom:1px solid rgba(201,168,76,0.15); margin-bottom:28px; }
   .tab-main { flex:1; padding:14px 10px; background:none; border:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; font-family:var(--font-body); font-size:0.75rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--gray); transition:all var(--transition); }
   .tab-main.active { color:var(--gold); border-bottom-color:var(--gold); }
@@ -78,15 +74,12 @@ const CSS = `
   .tab-sub { padding:7px 16px; background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:2px; cursor:pointer; font-family:var(--font-body); font-size:0.7rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--gray); transition:all var(--transition); }
   .tab-sub.active { background:rgba(201,168,76,0.1); border-color:rgba(201,168,76,0.3); color:var(--gold); }
   .tab-sub:hover:not(.active) { color:var(--cream); }
-
   .section-title { font-family:var(--font-display); font-size:1.2rem; font-weight:400; font-style:italic; color:var(--gold); margin-bottom:14px; display:flex; align-items:center; gap:12px; }
   .section-title::after { content:''; flex:1; height:1px; background:linear-gradient(to right,rgba(201,168,76,0.25),transparent); }
-
   .groups-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(380px,1fr)); gap:16px; }
   .group-card { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); overflow:hidden; }
   .group-header { background:rgba(201,168,76,0.07); border-bottom:1px solid rgba(201,168,76,0.12); padding:10px 16px; display:flex; align-items:center; justify-content:space-between; }
   .group-name { font-family:var(--font-display); font-size:1.05rem; font-weight:600; letter-spacing:0.12em; color:var(--gold); text-transform:uppercase; }
-
   .standings-table { width:100%; border-collapse:collapse; }
   .standings-table th { font-size:0.58rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); padding:7px 8px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.05); }
   .standings-table th.th-team { text-align:left; padding-left:14px; }
@@ -100,7 +93,6 @@ const CSS = `
   .team-flag { font-size:1rem; margin-right:6px; }
   .team-name-cell { font-weight:600; letter-spacing:0.03em; font-size:0.78rem; }
   .pts-cell { font-family:var(--font-display); font-size:1rem; font-weight:600; color:var(--gold); }
-
   .group-matches { border-top:1px solid rgba(255,255,255,0.05); }
   .group-match-row { display:grid; grid-template-columns:1fr auto 1fr auto; align-items:center; gap:8px; padding:9px 14px; border-bottom:1px solid rgba(255,255,255,0.03); font-size:0.8rem; }
   .group-match-row:last-child { border-bottom:none; }
@@ -111,7 +103,6 @@ const CSS = `
   .gm-date { font-size:0.62rem; color:var(--gray); white-space:nowrap; text-align:right; }
   .live-dot { display:inline-block; width:5px; height:5px; background:#e07060; border-radius:50%; margin-right:3px; animation:pulse 1.2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
-
   .knockout-stage { margin-bottom:28px; }
   .knockout-match { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:14px 18px; margin-bottom:8px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px; transition:border-color var(--transition); }
   .knockout-match:hover { border-color:rgba(201,168,76,0.22); }
@@ -120,13 +111,11 @@ const CSS = `
   .ko-team.away { justify-content:flex-start; }
   .ko-score { font-family:var(--font-display); font-size:1.5rem; font-weight:600; color:var(--gold); text-align:center; }
   .ko-score.pending { color:var(--gray); font-family:var(--font-body); font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; }
-
   .matchday-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
   .matchday-tab { padding:6px 14px; background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:2px; cursor:pointer; font-family:var(--font-body); font-size:0.68rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--gray); transition:all var(--transition); }
   .matchday-tab.active { background:rgba(201,168,76,0.1); border-color:rgba(201,168,76,0.3); color:var(--gold); }
   .matchday-tab.done { color:var(--gold-dim); border-color:rgba(201,168,76,0.15); }
   .matchday-tab:hover:not(.active) { color:var(--cream); }
-
   .prono-card { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:16px 18px; margin-bottom:10px; position:relative; overflow:hidden; transition:border-color var(--transition); }
   .prono-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:transparent; transition:background var(--transition); }
   .prono-card:hover { border-color:rgba(201,168,76,0.2); }
@@ -157,7 +146,6 @@ const CSS = `
   .pts-3 { background:rgba(201,168,76,0.15); color:var(--gold-light); border:1px solid rgba(201,168,76,0.3); }
   .pts-1 { background:rgba(201,168,76,0.06); color:var(--gold); border:1px solid rgba(201,168,76,0.15); }
   .pts-0 { background:rgba(255,255,255,0.04); color:var(--gray); border:1px solid rgba(255,255,255,0.07); }
-
   .auth-wrap { min-height:72vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; }
   .auth-hero { text-align:center; }
   .auth-hero h1 { font-family:var(--font-display); font-size:clamp(3rem,10vw,5.5rem); font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--cream); line-height:1; }
@@ -177,7 +165,6 @@ const CSS = `
   .btn-ghost { background:none; border:1px solid rgba(201,168,76,0.15); color:var(--gray); font-size:0.72rem; letter-spacing:0.1em; padding:12px; margin-top:10px; }
   .btn-ghost:hover { background:rgba(201,168,76,0.05); color:var(--cream); transform:none; }
   .error-msg { background:rgba(192,57,43,0.1); border:1px solid rgba(192,57,43,0.25); border-radius:var(--radius); padding:10px 14px; font-size:0.78rem; color:#d07060; margin-bottom:14px; }
-
   .podium { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:24px; align-items:end; }
   .podium-card { background:var(--coal); border-radius:var(--radius); padding:16px 12px; text-align:center; border:1px solid rgba(201,168,76,0.1); position:relative; overflow:hidden; }
   .podium-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:rgba(201,168,76,0.12); }
@@ -198,7 +185,6 @@ const CSS = `
   .rank-detail { font-size:0.7rem; color:var(--gray); margin-top:2px; }
   .rank-total { font-family:var(--font-display); font-size:1.4rem; font-weight:600; color:var(--gold); text-align:right; }
   .rank-total span { font-family:var(--font-body); font-size:0.65rem; color:var(--gray); margin-left:2px; }
-
   .bonus-intro { background:var(--coal); border:1px solid rgba(201,168,76,0.15); border-radius:var(--radius); padding:20px 24px; margin-bottom:24px; position:relative; }
   .bonus-intro::before { content:''; position:absolute; top:0; left:24px; right:24px; height:1px; background:linear-gradient(to right,transparent,var(--gold),transparent); }
   .bonus-intro p { font-size:0.8rem; color:var(--gray); line-height:1.7; }
@@ -234,7 +220,6 @@ const CSS = `
   .bonus-confirmed-badge { display:flex; align-items:center; gap:8px; padding:0 20px 16px; font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--gold); }
   .bonus-confirmed-badge::before { content:'✦'; font-size:0.6rem; }
   .bonus-locked-msg { padding:0 20px 14px; font-size:0.7rem; color:var(--gray); text-transform:uppercase; font-style:italic; }
-
   .empty { text-align:center; padding:48px 0; color:var(--gray); font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; }
   .empty-icon { font-size:2rem; margin-bottom:10px; opacity:0.5; }
   .spinner { width:22px; height:22px; border:1px solid rgba(201,168,76,0.15); border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; margin:40px auto; }
@@ -378,17 +363,11 @@ function GroupsView({ matches }) {
             <div className="group-matches">
               {gMs.map(m => (
                 <div className="group-match-row" key={m.id}>
-                  <div className="gm-home">
-                    <span>{teamName(m.home_team)}</span>
-                    <span>{flag(m.home_team)}</span>
-                  </div>
+                  <div className="gm-home"><span>{teamName(m.home_team)}</span><span>{flag(m.home_team)}</span></div>
                   {m.status==="finished" ? <div className="gm-score">{m.score_home}–{m.score_away}</div>
                     : m.status==="live" ? <div className="gm-score"><span className="live-dot"/>Live</div>
                     : <div className="gm-score pending">vs</div>}
-                  <div className="gm-away">
-                    <span>{flag(m.away_team)}</span>
-                    <span>{teamName(m.away_team)}</span>
-                  </div>
+                  <div className="gm-away"><span>{flag(m.away_team)}</span><span>{teamName(m.away_team)}</span></div>
                   <div className="gm-date">{formatDateShort(m.kickoff)}</div>
                 </div>
               ))}
@@ -477,7 +456,7 @@ function PronoCard({ match, prediction, token, onPredicted }) {
       </div>
       <div className="prono-teams">
         <div className="prono-team home">
-          <span>{teamName(m.home_team)}</span>
+          <span>{teamName(match.home_team)}</span>
           <span className="prono-flag">{flag(match.home_team)}</span>
         </div>
         {match.status==="finished"
@@ -618,7 +597,6 @@ function BonusScreen({ token }) {
   const [answers,setAnswers]=useState({});
   const [confirmed,setConfirmed]=useState({});
   const [saving,setSaving]=useState({});
-  const [msgs,setMsgs]=useState({});
   function isLocked(q){return new Date()>=new Date(q.lockDate);}
   function handleSelect(qId,cId){
     if (confirmed[qId]||isLocked(BONUS_QUESTIONS.find(q=>q.id===qId))) return;
@@ -628,13 +606,24 @@ function BonusScreen({ token }) {
     const cId=answers[question.id]; if (!cId) return;
     setSaving(s=>({...s,[question.id]:true}));
     try {
-      await new Promise(r=>setTimeout(r,500));
+      await apiCall("/bonus",{method:"POST",body:JSON.stringify({questionId:question.id,answerId:cId})},token);
       setConfirmed(c=>({...c,[question.id]:cId}));
-      setMsgs(m=>({...m,[question.id]:"ok"}));
-      setTimeout(()=>setMsgs(m=>({...m,[question.id]:""})),3000);
-    } catch(e){setMsgs(m=>({...m,[question.id]:"err"}));}
+    } catch(e){ console.error(e); }
     finally{setSaving(s=>({...s,[question.id]:false}));}
   }
+
+  useEffect(()=>{
+    apiCall("/bonus",{},token).then(d=>{
+      if (d.bonus) {
+        const c={};
+        if (d.bonus.winner_id) c["winner"]=d.bonus.winner_id;
+        if (d.bonus.top_scorer_id) c["topscorer"]=d.bonus.top_scorer_id;
+        setConfirmed(c);
+        setAnswers(c);
+      }
+    }).catch(()=>{});
+  },[]);
+
   const totalPts=BONUS_QUESTIONS.reduce((s,q)=>s+q.points,0);
   return (
     <div>

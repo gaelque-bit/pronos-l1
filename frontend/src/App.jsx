@@ -144,8 +144,9 @@ const CSS = `
   .btn-predict:hover { background:var(--gold); color:var(--obsidian); }
   .btn-predict:disabled { opacity:0.3; cursor:not-allowed; }
   .points-badge { font-family:var(--font-body); font-size:0.7rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; padding:3px 10px; border-radius:2px; }
-  .pts-3 { background:rgba(201,168,76,0.15); color:var(--gold-light); border:1px solid rgba(201,168,76,0.3); }
-  .pts-1 { background:rgba(201,168,76,0.06); color:var(--gold); border:1px solid rgba(201,168,76,0.15); }
+  .pts-6 { background:rgba(201,168,76,0.2); color:var(--gold-light); border:1px solid rgba(201,168,76,0.4); }
+  .pts-4 { background:rgba(201,168,76,0.12); color:var(--gold); border:1px solid rgba(201,168,76,0.25); }
+  .pts-2 { background:rgba(201,168,76,0.06); color:var(--gold-dim); border:1px solid rgba(201,168,76,0.15); }
   .pts-0 { background:rgba(255,255,255,0.04); color:var(--gray); border:1px solid rgba(255,255,255,0.07); }
   .auth-wrap { min-height:72vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; }
   .auth-hero { text-align:center; }
@@ -186,6 +187,17 @@ const CSS = `
   .rank-detail { font-size:0.7rem; color:var(--gray); margin-top:2px; }
   .rank-total { font-family:var(--font-display); font-size:1.4rem; font-weight:600; color:var(--gold); text-align:right; }
   .rank-total span { font-family:var(--font-body); font-size:0.65rem; color:var(--gray); margin-left:2px; }
+
+  /* Distinctions */
+  .distinctions-grid { display:flex; flex-direction:column; gap:8px; }
+  .distinction-card { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:14px 18px; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px; transition:border-color var(--transition); }
+  .distinction-card:hover { border-color:rgba(201,168,76,0.22); }
+  .distinction-emoji { font-size:1.4rem; }
+  .distinction-label { font-size:0.68rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.1em; font-weight:600; margin-bottom:3px; }
+  .distinction-winner { font-family:var(--font-display); font-size:1.1rem; font-weight:600; color:var(--cream); letter-spacing:0.04em; }
+  .distinction-winner.empty { color:var(--gray); font-style:italic; font-size:0.82rem; font-family:var(--font-body); }
+  .distinction-detail { font-size:0.72rem; color:var(--gold); font-weight:600; letter-spacing:0.08em; text-align:right; white-space:nowrap; }
+
   .bonus-intro { background:var(--coal); border:1px solid rgba(201,168,76,0.15); border-radius:var(--radius); padding:20px 24px; margin-bottom:24px; position:relative; }
   .bonus-intro::before { content:''; position:absolute; top:0; left:24px; right:24px; height:1px; background:linear-gradient(to right,transparent,var(--gold),transparent); }
   .bonus-intro p { font-size:0.8rem; color:var(--gray); line-height:1.7; }
@@ -250,8 +262,9 @@ function stageLabel(s) {
   return { GROUP_STAGE:"Phase de groupes", ROUND_OF_16:"Huitièmes de finale", QUARTER_FINALS:"Quarts de finale", SEMI_FINALS:"Demi-finales", THIRD_PLACE:"3e place", FINAL:"Finale" }[s] || s;
 }
 function ptsClass(pts) {
-  if (pts===3) return "points-badge pts-3";
-  if (pts===1) return "points-badge pts-1";
+  if (pts===6) return "points-badge pts-6";
+  if (pts===4) return "points-badge pts-4";
+  if (pts===2) return "points-badge pts-2";
   return "points-badge pts-0";
 }
 
@@ -593,45 +606,99 @@ function PredictionsScreen({ matches, loading, token }) {
   );
 }
 
-function RankingScreen({ currentUser }) {
-  const [ranking,setRanking]=useState([]);
+function DistinctionsScreen({ token }) {
+  const [distinctions,setDistinctions]=useState([]);
   const [loading,setLoading]=useState(true);
+
   useEffect(()=>{
-    apiCall("/ranking").then(d=>setRanking(d.classement||[])).catch(console.error).finally(()=>setLoading(false));
+    apiCall("/distinctions",{},token)
+      .then(d=>setDistinctions(d.distinctions||[]))
+      .catch(console.error)
+      .finally(()=>setLoading(false));
   },[]);
-  const top3=ranking.filter(r=>r.rang<=3).slice(0,3);
-  const podium=[top3[1],top3[0],top3[2]].filter(Boolean);
+
   if (loading) return <div className="spinner"/>;
+
   return (
     <div>
-      {top3.length>=2&&(<>
-        <div className="section-title">Podium</div>
-        <div className="podium">
-          {podium.map(p=>p&&(
-            <div key={p.id} className={`podium-card rank-${p.rang}`}>
-              {p.rang===1&&<div className="crown">🏆</div>}
-              <div className="podium-rank">#{p.rang}</div>
-              <div className="podium-name">{p.username}</div>
-              <div className="podium-pts">{p.total}<span style={{fontSize:"0.72rem",fontFamily:"var(--font-body)",color:"var(--gray)",marginLeft:4}}>pts</span></div>
-              {p.scores_exacts>0&&<div style={{fontSize:"0.7rem",color:"var(--gray)",marginTop:4}}>{p.scores_exacts} exact{p.scores_exacts>1?"s":""}</div>}
+      <div className="section-title" style={{marginTop:8}}>Distinctions</div>
+      {distinctions.length===0 ? (
+        <div className="empty"><div className="empty-icon">🏅</div>Les distinctions seront disponibles dès le début du tournoi.</div>
+      ) : (
+        <div className="distinctions-grid">
+          {distinctions.map((d,i)=>(
+            <div className="distinction-card" key={i}>
+              <div className="distinction-emoji">{d.emoji}</div>
+              <div>
+                <div className="distinction-label">{d.label}</div>
+                <div className={`distinction-winner ${!d.username?"empty":""}`}>
+                  {d.username || "—"}
+                </div>
+              </div>
+              <div className="distinction-detail">{d.detail}</div>
             </div>
           ))}
         </div>
-      </>)}
-      <div className="section-title">Classement complet</div>
-      <div className="rank-list">
-        {ranking.map(row=>(
-          <div key={row.id} className={`rank-row ${row.id===currentUser?.id?"me":""}`}>
-            <div className="rank-num">{row.rang}</div>
-            <div>
-              <div className="rank-username">{row.username}{row.id===currentUser?.id&&<span style={{fontSize:"0.68rem",color:"var(--gold)",marginLeft:8}}>← toi</span>}</div>
-              <div className="rank-detail">{row.pronos_joues} matchs · {row.scores_exacts} exacts{row.points_bonus>0?` · +${row.points_bonus} bonus`:""}</div>
-            </div>
-            <div className="rank-total">{row.total}<span>pts</span></div>
-          </div>
-        ))}
+      )}
+    </div>
+  );
+}
+
+function RankingScreen({ currentUser, token }) {
+  const [ranking,setRanking]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [subTab,setSubTab]=useState("classement");
+
+  useEffect(()=>{
+    apiCall("/ranking").then(d=>setRanking(d.classement||[])).catch(console.error).finally(()=>setLoading(false));
+  },[]);
+
+  const top3=ranking.filter(r=>r.rang<=3).slice(0,3);
+  const podium=[top3[1],top3[0],top3[2]].filter(Boolean);
+
+  if (loading) return <div className="spinner"/>;
+
+  return (
+    <div>
+      <div className="tabs-sub">
+        <button className={`tab-sub ${subTab==="classement"?"active":""}`} onClick={()=>setSubTab("classement")}>Classement</button>
+        <button className={`tab-sub ${subTab==="distinctions"?"active":""}`} onClick={()=>setSubTab("distinctions")}>Distinctions</button>
       </div>
-      {ranking.length===0&&<div className="empty"><div className="empty-icon">📊</div>Aucun point pour l'instant.</div>}
+
+      {subTab==="classement" && (
+        <>
+          {top3.length>=2&&(<>
+            <div className="section-title">Podium</div>
+            <div className="podium">
+              {podium.map(p=>p&&(
+                <div key={p.id} className={`podium-card rank-${p.rang}`}>
+                  {p.rang===1&&<div className="crown">🏆</div>}
+                  <div className="podium-rank">#{p.rang}</div>
+                  <div className="podium-name">{p.username}</div>
+                  <div className="podium-pts">{p.total}<span style={{fontSize:"0.72rem",fontFamily:"var(--font-body)",color:"var(--gray)",marginLeft:4}}>pts</span></div>
+                  {p.scores_exacts>0&&<div style={{fontSize:"0.7rem",color:"var(--gray)",marginTop:4}}>{p.scores_exacts} exact{p.scores_exacts>1?"s":""}</div>}
+                </div>
+              ))}
+            </div>
+          </>)}
+          <div className="section-title">Classement complet</div>
+          <div className="rank-list">
+            {ranking.map(row=>(
+              <div key={row.id} className={`rank-row ${row.id===currentUser?.id?"me":""}`}>
+                <div className="rank-num">{row.rang}</div>
+                <div>
+                  <div className="rank-username">{row.username}{row.id===currentUser?.id&&<span style={{fontSize:"0.68rem",color:"var(--gold)",marginLeft:8}}>← toi</span>}</div>
+                  <div className="rank-detail">{row.pronos_joues} matchs · {row.scores_exacts} exacts{row.points_bonus>0?` · +${row.points_bonus} bonus`:""}</div>
+                </div>
+                <div className="rank-total">{row.total}<span>pts</span></div>
+              </div>
+            ))}
+          </div>
+          {ranking.length===0&&<div className="empty"><div className="empty-icon">📊</div>Aucun point pour l'instant.</div>}
+        </>
+      )}
+
+      {subTab==="distinctions" && <DistinctionsScreen token={token}/>}
     </div>
   );
 }
@@ -764,7 +831,7 @@ export default function App() {
                 {tab==="resultats"  && <ResultsScreen matches={matches} loading={loading}/>}
                 {tab==="pronostics" && <PredictionsScreen matches={matches} loading={loading} token={token}/>}
                 {tab==="bonus"      && <BonusScreen token={token}/>}
-                {tab==="classement" && <RankingScreen currentUser={user}/>}
+                {tab==="classement" && <RankingScreen currentUser={user} token={token}/>}
               </>
             )}
           </>

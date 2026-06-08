@@ -17,6 +17,7 @@ app.use('/api', require('./routes/admin'));
 const authMiddleware = require('./middlewares/auth');
 app.use('/api', authMiddleware, require('./routes/predict'));
 app.use('/api', authMiddleware, require('./routes/bonus'));
+app.use('/api', authMiddleware, require('./routes/distinctions'));
 
 // ── Route de test ──────────────────────────────────────────────────────────
 app.get('/api', (req, res) => {

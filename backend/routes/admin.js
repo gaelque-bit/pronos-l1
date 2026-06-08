@@ -1,4 +1,3 @@
-// routes/admin.js
 const express  = require('express');
 const router   = express.Router();
 const bcrypt   = require('bcrypt');
@@ -71,6 +70,21 @@ router.get('/admin/matches', isAdmin, (req, res) => {
   res.json({ matches });
 });
 
+// ── Fonction calcul points (barème 6/4/2/0) ───────────────────────────────────
+function calcPoints(pred_home, pred_away, score_home, score_away) {
+  const exactScore = pred_home === score_home && pred_away === score_away;
+  const correctResult =
+    (pred_home > pred_away && score_home > score_away) ||
+    (pred_home < pred_away && score_home < score_away) ||
+    (pred_home === pred_away && score_home === score_away);
+  const correctDiff = correctResult && (pred_home - pred_away) === (score_home - score_away);
+
+  if (exactScore)         return 6;
+  if (correctDiff)        return 4;
+  if (correctResult)      return 2;
+  return 0;
+}
+
 // ── PATCH /api/admin/matches/:id ──────────────────────────────────────────────
 router.patch('/admin/matches/:id', isAdmin, (req, res) => {
   const { id } = req.params;
@@ -90,16 +104,7 @@ router.patch('/admin/matches/:id', isAdmin, (req, res) => {
   const updatePts = db.prepare('UPDATE predictions SET points_earned = ? WHERE id = ?');
 
   for (const pred of predictions) {
-    let pts = 0;
-    const exactScore = pred.pred_home === score_home && pred.pred_away === score_away;
-    const correctResult =
-      (pred.pred_home > pred.pred_away && score_home > score_away) ||
-      (pred.pred_home < pred.pred_away && score_home < score_away) ||
-      (pred.pred_home === pred.pred_away && score_home === score_away);
-
-    if (exactScore)        pts = 3;
-    else if (correctResult) pts = 1;
-
+    const pts = calcPoints(pred.pred_home, pred.pred_away, score_home, score_away);
     updatePts.run(pts, pred.id);
   }
 
@@ -118,3 +123,4 @@ router.post('/admin/sync', isAdmin, async (req, res) => {
 });
 
 module.exports = router;
+module.exports.calcPoints = calcPoints;

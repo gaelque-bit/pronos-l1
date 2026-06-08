@@ -366,7 +366,7 @@ const BONUS_QUESTIONS = [
     choices:[{id:"FRA",flag:"🇫🇷",label:"France"},{id:"BRA",flag:"🇧🇷",label:"Brésil"},{id:"ARG",flag:"🇦🇷",label:"Argentine"},{id:"ENG",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",label:"Angleterre"},{id:"ESP",flag:"🇪🇸",label:"Espagne"},{id:"GER",flag:"🇩🇪",label:"Allemagne"},{id:"POR",flag:"🇵🇹",label:"Portugal"},{id:"MAR",flag:"🇲🇦",label:"Maroc"},{id:"USA",flag:"🇺🇸",label:"États-Unis"},{id:"NED",flag:"🇳🇱",label:"Pays-Bas"}]
   },
   { id:"topscorer", label:"Question Bonus II", title:"Qui sera le meilleur buteur du tournoi ?", points:10, lockDate:"2026-06-11T18:00:00Z",
-    choices:[{id:"MBP",flag:"🇫🇷",label:"Kylian Mbappé"},{id:"VIN",flag:"🇧🇷",label:"Vinícius Jr."},{id:"LAU",flag:"🇦🇷",label:"Lautaro Martínez"},{id:"KAN",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",label:"Harry Kane"},{id:"YAM",flag:"🇪🇸",label:"Lamine Yamal"},{id:"KAI",flag:"🇩🇪",label:"Kai Havertz"},{id:"LEW",flag:"🇵🇱",label:"Robert Lewandowski"},{id:"OSI",flag:"🇳🇬",label:"Victor Osimhen"},{id:"PUL",flag:"🇺🇸",label:"Christian Pulisic"},{id:"ARD",flag:"🇹🇷",label:"Arda Güler"}]
+    choices:[{id:"MBP",flag:"🇫🇷",label:"Kylian Mbappé"},{id:"VIN",flag:"🇧🇷",label:"Vinícius Jr."},{id:"LAU",flag:"🇦🇷",label:"Lautaro Martínez"},{id:"KAN",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",label:"Harry Kane"},{id:"YAM",flag:"🇪🇸",label:"Lamine Yamal"},{id:"KAI",flag:"🇩🇪",label:"Kai Havertz"},{id:"HAA",flag:"🇳🇴",label:"Erling Haaland"},{id:"OSI",flag:"🇳🇬",label:"Victor Osimhen"},{id:"PUL",flag:"🇺🇸",label:"Christian Pulisic"},{id:"ARD",flag:"🇹🇷",label:"Arda Güler"}]
   },
 ];
 

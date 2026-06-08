@@ -16,6 +16,7 @@ app.use('/api', require('./routes/admin'));
 // ── Routes protégées (users) ───────────────────────────────────────────────
 const authMiddleware = require('./middlewares/auth');
 app.use('/api', authMiddleware, require('./routes/predict'));
+app.use('/api', authMiddleware, require('./routes/bonus'));
 
 // ── Route de test ──────────────────────────────────────────────────────────
 app.get('/api', (req, res) => {

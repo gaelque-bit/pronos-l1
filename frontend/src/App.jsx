@@ -434,6 +434,11 @@ function PronoCard({ match, prediction, token, onPredicted }) {
   const [saving,setSaving]=useState(false);
   const [msg,setMsg]=useState("");
 
+  useEffect(()=>{
+    setHome(prediction?.pred_home??"");
+    setAway(prediction?.pred_away??"");
+  },[prediction]);
+
   const locked = match.status!=="scheduled"||new Date(match.kickoff)<new Date();
   const now = new Date();
   const kickoff = new Date(match.kickoff);
@@ -520,9 +525,23 @@ function PronoCard({ match, prediction, token, onPredicted }) {
 function PredictionsScreen({ matches, loading, token }) {
   const [predictions,setPredictions]=useState({});
   const [activeDay,setActiveDay]=useState(null);
+  const [loadingPredictions,setLoadingPredictions]=useState(true);
+
   const groupMatches = matches.filter(m=>m.stage==="GROUP_STAGE"&&m.matchday);
   const days = [...new Set(groupMatches.map(m=>m.matchday))].sort((a,b)=>a-b);
   const knockoutMatches = matches.filter(m=>m.stage!=="GROUP_STAGE");
+
+  useEffect(()=>{
+    if (!token||matches.length===0) return;
+    apiCall("/predictions",{},token)
+      .then(d=>{
+        const map={};
+        (d.predictions||[]).forEach(p=>{ map[p.match_id]=p; });
+        setPredictions(map);
+      })
+      .catch(console.error)
+      .finally(()=>setLoadingPredictions(false));
+  },[matches,token]);
 
   useEffect(()=>{
     if (days.length>0&&activeDay===null) {
@@ -541,7 +560,7 @@ function PredictionsScreen({ matches, loading, token }) {
     return "open";
   }
 
-  if (loading) return <div className="spinner"/>;
+  if (loading||loadingPredictions) return <div className="spinner"/>;
   const currentMatches = activeDay?groupMatches.filter(m=>m.matchday===activeDay):[];
 
   return (
@@ -697,9 +716,6 @@ function BonusScreen({ token }) {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// APP ROOT
-// ═══════════════════════════════════════════════════════════════════════════════
 export default function App() {
   const [user,setUser]           = useState(null);
   const [token,setToken]         = useState(null);
@@ -727,9 +743,7 @@ export default function App() {
               <div className="avatar">{user.username[0].toUpperCase()}</div>
               <span>{user.username}</span>
               {user.role==='admin' && (
-                <button className="btn-logout" onClick={()=>setShowAdmin(true)} style={{color:'var(--gold-dim)'}}>
-                  Admin
-                </button>
+                <button className="btn-logout" onClick={()=>setShowAdmin(true)} style={{color:'var(--gold-dim)'}}>Admin</button>
               )}
               <button className="btn-logout" onClick={handleLogout}>Déconnexion</button>
             </div>
@@ -737,12 +751,9 @@ export default function App() {
             <div style={{fontSize:"0.75rem",color:"var(--gray)",letterSpacing:"0.1em",textTransform:"uppercase"}}>Coupe du Monde 2026</div>
           )}
         </header>
-
         {!user ? <AuthScreen onLogin={handleLogin}/> : (
           <>
-            {showAdmin ? (
-              <AdminScreen onBack={()=>setShowAdmin(false)}/>
-            ) : (
+            {showAdmin ? <AdminScreen onBack={()=>setShowAdmin(false)}/> : (
               <>
                 <div className="tabs-main">
                   <button className={`tab-main ${tab==="resultats"?"active":""}`} onClick={()=>setTab("resultats")}>Résultats</button>

@@ -1,8 +1,8 @@
-// routes/predict.js
 const express = require('express');
 const router  = express.Router();
 const db      = require('../database');
 
+// POST /api/predict
 router.post('/predict', (req, res) => {
   const userId = req.user?.id;
   if (!userId)
@@ -44,6 +44,19 @@ router.post('/predict', (req, res) => {
     console.error('Erreur BDD :', err.message);
     return res.status(500).json({ error: 'Erreur serveur.' });
   }
+});
+
+// GET /api/predictions — charger tous les pronostics de l'utilisateur connecté
+router.get('/predictions', (req, res) => {
+  const userId = req.user?.id;
+  if (!userId)
+    return res.status(401).json({ error: 'Non connecté.' });
+
+  const predictions = db.prepare(
+    'SELECT * FROM predictions WHERE user_id = ?'
+  ).all(userId);
+
+  return res.json({ predictions });
 });
 
 module.exports = router;

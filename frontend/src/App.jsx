@@ -121,8 +121,9 @@ const CSS = `
   .prono-card:hover { border-color:rgba(201,168,76,0.2); }
   .prono-card:hover::before { background:var(--gold); }
   .prono-card.locked { opacity:0.65; }
-  .prono-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .prono-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:6px; }
   .prono-meta { font-size:0.68rem; color:var(--gray); letter-spacing:0.06em; text-transform:uppercase; }
+  .prono-badges { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .status-pill { font-size:0.62rem; font-weight:600; padding:3px 9px; border-radius:2px; text-transform:uppercase; letter-spacing:0.08em; }
   .status-scheduled { background:rgba(255,255,255,0.05); color:var(--gray); }
   .status-live { background:rgba(192,57,43,0.15); color:#d07060; }
@@ -432,7 +433,19 @@ function PronoCard({ match, prediction, token, onPredicted }) {
   const [away,setAway]=useState(prediction?.pred_away??"");
   const [saving,setSaving]=useState(false);
   const [msg,setMsg]=useState("");
+
   const locked = match.status!=="scheduled"||new Date(match.kickoff)<new Date();
+  const now = new Date();
+  const kickoff = new Date(match.kickoff);
+  const hoursLeft = (kickoff - now) / (1000 * 60 * 60);
+
+  function getPronoStatus() {
+    if (locked) return null;
+    if (prediction) return { label:"✓ Saisi", color:"#7dcc8a", bg:"rgba(45,106,63,0.15)", border:"rgba(45,106,63,0.35)" };
+    if (hoursLeft <= 24 && hoursLeft > 0) return { label:"⚠ Moins de 24h", color:"#e07060", bg:"rgba(192,57,43,0.15)", border:"rgba(192,57,43,0.35)" };
+    return { label:"À pronostiquer", color:"var(--gold)", bg:"rgba(201,168,76,0.08)", border:"rgba(201,168,76,0.25)" };
+  }
+  const pronoStatus = getPronoStatus();
 
   async function handlePredict() {
     if (home===""||away==="") { setMsg("Saisis les deux scores."); return; }
@@ -450,9 +463,20 @@ function PronoCard({ match, prediction, token, onPredicted }) {
     <div className={`prono-card ${locked?"locked":""}`}>
       <div className="prono-header">
         <div className="prono-meta">{match.group_name?groupLabel(match.group_name)+" · ":""}{formatDate(match.kickoff)}</div>
-        <span className={`status-pill status-${match.status}`}>
-          {match.status==="live"?"En direct":match.status==="finished"?"Terminé":"À venir"}
-        </span>
+        <div className="prono-badges">
+          {pronoStatus && (
+            <span style={{
+              fontSize:"0.62rem", fontWeight:600, padding:"3px 9px", borderRadius:"2px",
+              textTransform:"uppercase", letterSpacing:"0.08em",
+              color:pronoStatus.color, background:pronoStatus.bg, border:`1px solid ${pronoStatus.border}`
+            }}>
+              {pronoStatus.label}
+            </span>
+          )}
+          <span className={`status-pill status-${match.status}`}>
+            {match.status==="live"?"En direct":match.status==="finished"?"Terminé":"À venir"}
+          </span>
+        </div>
       </div>
       <div className="prono-teams">
         <div className="prono-team home">
@@ -597,11 +621,14 @@ function BonusScreen({ token }) {
   const [answers,setAnswers]=useState({});
   const [confirmed,setConfirmed]=useState({});
   const [saving,setSaving]=useState({});
+
   function isLocked(q){return new Date()>=new Date(q.lockDate);}
+
   function handleSelect(qId,cId){
     if (confirmed[qId]||isLocked(BONUS_QUESTIONS.find(q=>q.id===qId))) return;
     setAnswers(a=>({...a,[qId]:cId}));
   }
+
   async function handleConfirm(question){
     const cId=answers[question.id]; if (!cId) return;
     setSaving(s=>({...s,[question.id]:true}));

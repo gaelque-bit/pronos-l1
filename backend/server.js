@@ -24,8 +24,10 @@ app.get('/api', (req, res) => {
   res.json({ message: '🚀 Serveur Pronos CDM opérationnel !' });
 });
 
-// ── Cron jobs ──────────────────────────────────────────────────────────────
+// ── Cron jobs + sync au démarrage ──────────────────────────────────────────
 require('./jobs/syncMatches');
+const { syncMatches } = require('./jobs/syncMatches');
+syncMatches().catch(console.error);
 
 // ── Frontend ───────────────────────────────────────────────────────────────
 const distPath = path.join(__dirname, 'dist');

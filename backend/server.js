@@ -1,4 +1,3 @@
-// server.js
 require('dotenv').config();
 
 const express = require('express');
@@ -11,12 +10,12 @@ app.use(express.json());
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/ranking'));
 
+// ── Routes admin (avant authMiddleware) ────────────────────────────────────
+app.use('/api', require('./routes/admin'));
+
 // ── Routes protégées (users) ───────────────────────────────────────────────
 const authMiddleware = require('./middlewares/auth');
 app.use('/api', authMiddleware, require('./routes/predict'));
-
-// ── Routes admin ───────────────────────────────────────────────────────────
-app.use('/api', require('./routes/admin'));
 
 // ── Route de test ──────────────────────────────────────────────────────────
 app.get('/api', (req, res) => {

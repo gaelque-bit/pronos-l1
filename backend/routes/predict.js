@@ -46,7 +46,7 @@ router.post('/predict', (req, res) => {
   }
 });
 
-// GET /api/predictions — charger tous les pronostics de l'utilisateur connecté
+// GET /api/predictions — pronostics de l'utilisateur connecté
 router.get('/predictions', (req, res) => {
   const userId = req.user?.id;
   if (!userId)
@@ -57,6 +57,29 @@ router.get('/predictions', (req, res) => {
   ).all(userId);
 
   return res.json({ predictions });
+});
+
+// GET /api/predictions/user/:userId — historique d'un participant (public après coup d'envoi)
+router.get('/predictions/user/:userId', (req, res) => {
+  const { userId } = req.params;
+
+  const user = db.prepare('SELECT id, username FROM users WHERE id = ? AND role = ?').get(userId, 'user');
+  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable.' });
+
+  const predictions = db.prepare(`
+    SELECT
+      p.id, p.pred_home, p.pred_away, p.points_earned,
+      m.id AS match_id, m.home_team, m.away_team, m.score_home, m.score_away,
+      m.status, m.kickoff, m.stage, m.group_name, m.matchday
+    FROM predictions p
+    JOIN matches m ON m.id = p.match_id
+    WHERE p.user_id = ?
+    ORDER BY m.kickoff ASC
+  `).all(userId);
+
+  const bonus = db.prepare('SELECT * FROM bonus WHERE user_id = ?').get(userId);
+
+  return res.json({ user, predictions, bonus: bonus || null });
 });
 
 module.exports = router;

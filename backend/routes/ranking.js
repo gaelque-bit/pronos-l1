@@ -43,4 +43,34 @@ router.get('/ranking', (req, res) => {
   }
 });
 
+// GET /api/evolution — points cumulés par journée pour chaque joueur
+router.get('/evolution', (req, res) => {
+  try {
+    const users = db.prepare("SELECT id, username FROM users WHERE role = 'user' ORDER BY username ASC").all();
+    const days  = db.prepare("SELECT DISTINCT matchday FROM matches WHERE matchday IS NOT NULL AND status = 'finished' ORDER BY matchday ASC").all().map(r => r.matchday);
+
+    if (days.length === 0) return res.json({ users: [], days: [], series: [] });
+
+    const series = users.map(user => {
+      let cumul = 0;
+      const points = days.map(day => {
+        const row = db.prepare(`
+          SELECT COALESCE(SUM(p.points_earned), 0) AS pts
+          FROM predictions p
+          JOIN matches m ON m.id = p.match_id
+          WHERE p.user_id = ? AND m.matchday = ? AND m.status = 'finished'
+        `).get(user.id, day);
+        cumul += row?.pts || 0;
+        return cumul;
+      });
+      return { id: user.id, username: user.username, points };
+    });
+
+    return res.json({ users: users.map(u=>u.username), days, series });
+  } catch(err) {
+    console.error('Erreur évolution :', err.message);
+    return res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
 module.exports = router;

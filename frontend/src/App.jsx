@@ -510,25 +510,34 @@ function HistoriqueModal({ userId, token, onClose }) {
                 <div className="empty"><div className="empty-icon">📋</div>Aucun pronostic enregistré.</div>
               ) : (
                 <div className="histo-list">
-                  {data.predictions.map(p => (
-                    <div className="histo-row" key={p.id}>
-                      <div>
-                        <div className="histo-match">
-                          {flag(p.home_team)} {teamName(p.home_team)} — {teamName(p.away_team)} {flag(p.away_team)}
+                  {data.predictions.map(p => {
+                    const masked = p.pred_home === null;
+                    return (
+                      <div className="histo-row" key={p.id}>
+                        <div>
+                          <div className="histo-match">
+                            {flag(p.home_team)} {teamName(p.home_team)} — {teamName(p.away_team)} {flag(p.away_team)}
+                          </div>
+                          <div className="histo-score">
+                            {masked
+                              ? <span style={{color:"var(--gray)",fontStyle:"italic"}}>Pronostic masqué avant le coup d'envoi</span>
+                              : p.status==="finished"
+                                ? `Score : ${p.score_home}–${p.score_away} · Prono : ${p.pred_home}–${p.pred_away}`
+                                : `Prono : ${p.pred_home}–${p.pred_away} · ${formatDateShort(p.kickoff)}`
+                            }
+                          </div>
                         </div>
-                        <div className="histo-score">
-                          {p.status==="finished"
-                            ? `Score : ${p.score_home}–${p.score_away} · Prono : ${p.pred_home}–${p.pred_away}`
-                            : `Prono : ${p.pred_home}–${p.pred_away} · ${formatDateShort(p.kickoff)}`}
+                        <div>
+                          {masked
+                            ? <span style={{fontSize:"0.65rem",color:"var(--gray)"}}>🔒</span>
+                            : p.status==="finished"
+                              ? <span className={ptsCls(p.points_earned)}>{p.points_earned} pt{p.points_earned>1?"s":""}</span>
+                              : <span className="histo-pts pending">À venir</span>
+                          }
                         </div>
                       </div>
-                      <div>
-                        {p.status==="finished"
-                          ? <span className={ptsCls(p.points_earned)}>{p.points_earned} pt{p.points_earned>1?"s":""}</span>
-                          : <span className="histo-pts pending">À venir</span>}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </>

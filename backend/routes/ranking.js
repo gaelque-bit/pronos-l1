@@ -73,4 +73,30 @@ router.get('/evolution', (req, res) => {
   }
 });
 
+// GET /api/series — série en cours pour chaque joueur
+router.get('/series', (req, res) => {
+  try {
+    const users = db.prepare("SELECT id, username FROM users WHERE role='user'").all();
+    const days  = db.prepare("SELECT DISTINCT matchday FROM matches WHERE matchday IS NOT NULL AND status='finished' ORDER BY matchday DESC").all().map(r=>r.matchday);
+
+    const series = users.map(user => {
+      let streak = 0;
+      for (const day of days) {
+        const pts = db.prepare(`
+          SELECT COALESCE(SUM(p.points_earned),0) AS pts
+          FROM predictions p JOIN matches m ON m.id=p.match_id
+          WHERE p.user_id=? AND m.matchday=? AND m.status='finished'
+        `).get(user.id, day);
+        if (pts && pts.pts > 0) streak++;
+        else break;
+      }
+      return { id: user.id, username: user.username, streak };
+    });
+
+    res.json({ series });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;

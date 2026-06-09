@@ -1,6 +1,30 @@
 import { useState, useEffect } from "react";
 
 const API_BASE = "/api";
+
+const TEAM_NAMES_FR = {
+  "Algeria":"Algérie","Argentina":"Argentine","Australia":"Australie",
+  "Austria":"Autriche","Belgium":"Belgique","Bosnia-H.":"Bosnie-Herzégovine",
+  "Bosnia-Herzegovina":"Bosnie-Herzégovine","Brazil":"Brésil","Brésil":"Brésil",
+  "Canada":"Canada","Cape Verde":"Cap-Vert","Chile":"Chili","Colombia":"Colombie",
+  "Congo DR":"RD Congo","Costa Rica":"Costa Rica","Croatia":"Croatie",
+  "Curaçao":"Curaçao","Czechia":"Tchéquie","Ecuador":"Équateur","Egypt":"Égypte",
+  "England":"Angleterre","France":"France","Germany":"Allemagne","Ghana":"Ghana",
+  "Guatemala":"Guatemala","Haiti":"Haïti","Honduras":"Honduras","Iran":"Iran",
+  "Iraq":"Irak","Ivory Coast":"Côte d'Ivoire","Japan":"Japon","Jordan":"Jordanie",
+  "Korea Republic":"Corée du Sud","Mexico":"Mexique","Morocco":"Maroc",
+  "Netherlands":"Pays-Bas","New Zealand":"Nouvelle-Zélande","Nigeria":"Nigéria",
+  "Norway":"Norvège","Panama":"Panama","Paraguay":"Paraguay","Peru":"Pérou",
+  "Poland":"Pologne","Portugal":"Portugal","Qatar":"Qatar",
+  "Saudi Arabia":"Arabie Saoudite","Scotland":"Écosse","Senegal":"Sénégal",
+  "Serbia":"Serbie","South Africa":"Afrique du Sud","Spain":"Espagne",
+  "Sweden":"Suède","Switzerland":"Suisse","Tunisia":"Tunisie","Turkey":"Turquie",
+  "USA":"États-Unis","Uruguay":"Uruguay","Uzbekistan":"Ouzbékistan",
+  "Venezuela":"Venezuela","Wales":"Pays de Galles","Cameroon":"Cameroun",
+  "Bolivia":"Bolivie",
+};
+const teamName = (name) => TEAM_NAMES_FR[name] || name;
+
 async function apiCall(endpoint, options = {}, token = null) {
   const headers = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -76,16 +100,16 @@ const ADMIN_CSS = `
   .btn-confirm-yes:hover { background:rgba(192,57,43,0.25); }
   .btn-confirm-no { flex:1; padding:10px; background:var(--muted); border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius); color:var(--gray); font-family:var(--font-body); font-size:0.7rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:all var(--transition); }
   .btn-confirm-no:hover { color:var(--cream); }
-
-  /* Dashboard */
-  .dashboard-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:28px; }
+  .dashboard-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:28px; }
   .dashboard-stat { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:18px 20px; }
   .dashboard-stat-val { font-family:var(--font-display); font-size:2.2rem; font-weight:600; color:var(--gold); line-height:1; }
   .dashboard-stat-label { font-size:0.62rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.1em; margin-top:6px; }
   .dashboard-stat-sub { font-size:0.72rem; color:var(--gold-dim); margin-top:4px; }
+  .dashboard-section-title { font-family:var(--font-display); font-size:1.1rem; font-weight:400; font-style:italic; color:var(--gold); margin-bottom:14px; display:flex; align-items:center; gap:12px; }
+  .dashboard-section-title::after { content:''; flex:1; height:1px; background:linear-gradient(to right,rgba(201,168,76,0.25),transparent); }
   .dashboard-info { display:flex; flex-direction:column; gap:10px; }
-  .dashboard-info-row { background:var(--coal); border:1px solid rgba(201,168,76,0.08); border-radius:var(--radius); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .dashboard-info-label { font-size:0.68rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.1em; font-weight:600; margin-bottom:3px; }
+  .dashboard-info-row { background:var(--coal); border:1px solid rgba(201,168,76,0.08); border-radius:var(--radius); padding:14px 18px; }
+  .dashboard-info-label { font-size:0.65rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.1em; font-weight:600; margin-bottom:4px; }
   .dashboard-info-val { font-size:0.85rem; color:var(--cream); font-weight:600; }
   .dashboard-progress { width:100%; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; margin-top:8px; overflow:hidden; }
   .dashboard-progress-bar { height:100%; background:var(--gold); border-radius:3px; transition:width 0.6s ease; }
@@ -96,6 +120,10 @@ function formatDate(iso) {
 }
 function stageLabel(s) {
   return { GROUP_STAGE:"Groupes", ROUND_OF_16:"8èmes", QUARTER_FINALS:"Quarts", SEMI_FINALS:"Demis", THIRD_PLACE:"3e place", FINAL:"Finale" }[s] || s;
+}
+function translateMatchStr(str) {
+  if (!str || str === '—') return str;
+  return str.replace(/^(.+) — (.+) \(/, (_, h, a) => `${teamName(h)} — ${teamName(a)} (`);
 }
 
 function Toast({ msg, type, onDone }) {
@@ -159,7 +187,7 @@ function AdminLogin({ onLogin }) {
 }
 
 function DashboardTab({ token }) {
-  const [stats, setStats]   = useState(null);
+  const [stats, setStats]     = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -170,7 +198,7 @@ function DashboardTab({ token }) {
   }, []);
 
   if (loading) return <div className="spinner"/>;
-  if (!stats) return <div className="empty">Erreur de chargement.</div>;
+  if (!stats)  return <div className="empty">Erreur de chargement.</div>;
 
   return (
     <div>
@@ -187,8 +215,10 @@ function DashboardTab({ token }) {
         </div>
         <div className="dashboard-stat">
           <div className="dashboard-stat-val">{stats.tauxParticipation}%</div>
-          <div className="dashboard-stat-label">Taux de participation</div>
-          <div className="dashboard-progress"><div className="dashboard-progress-bar" style={{width:`${stats.tauxParticipation}%`}}/></div>
+          <div className="dashboard-stat-label">Participation</div>
+          <div className="dashboard-progress">
+            <div className="dashboard-progress-bar" style={{width:`${stats.tauxParticipation}%`}}/>
+          </div>
         </div>
         <div className="dashboard-stat">
           <div className="dashboard-stat-val">{stats.scoresExacts}</div>
@@ -202,28 +232,19 @@ function DashboardTab({ token }) {
         </div>
       </div>
 
-      <div style={{fontFamily:"var(--font-display)",fontSize:"1.1rem",fontWeight:400,fontStyle:"italic",color:"var(--gold)",marginBottom:14,display:"flex",alignItems:"center",gap:12}}>
-        Détails
-        <span style={{flex:1,height:1,background:"linear-gradient(to right,rgba(201,168,76,0.25),transparent)"}}/>
-      </div>
+      <div className="dashboard-section-title">Détails</div>
       <div className="dashboard-info">
         <div className="dashboard-info-row">
-          <div>
-            <div className="dashboard-info-label">🥇 Meilleur score</div>
-            <div className="dashboard-info-val">{stats.meilleurScore}</div>
-          </div>
+          <div className="dashboard-info-label">🥇 Meilleur score</div>
+          <div className="dashboard-info-val">{stats.meilleurScore}</div>
         </div>
         <div className="dashboard-info-row">
-          <div>
-            <div className="dashboard-info-label">🔥 Match le plus pronostiqué</div>
-            <div className="dashboard-info-val">{stats.matchPlus}</div>
-          </div>
+          <div className="dashboard-info-label">🔥 Match le plus pronostiqué</div>
+          <div className="dashboard-info-val">{translateMatchStr(stats.matchPlus)}</div>
         </div>
         <div className="dashboard-info-row">
-          <div>
-            <div className="dashboard-info-label">❄️ Match le moins pronostiqué</div>
-            <div className="dashboard-info-val">{stats.matchMoins}</div>
-          </div>
+          <div className="dashboard-info-label">❄️ Match le moins pronostiqué</div>
+          <div className="dashboard-info-val">{translateMatchStr(stats.matchMoins)}</div>
         </div>
       </div>
     </div>
@@ -350,8 +371,10 @@ function ScoresTab({ token }) {
         return (
           <div className="match-edit-row" key={m.id}>
             <div>
-              <div className="match-edit-teams">{m.home_team} — {m.away_team}</div>
-              <div className="match-edit-meta">{stageLabel(m.stage)} · {formatDate(m.kickoff)} · <span style={{color:m.status==="finished"?"var(--gold)":m.status==="live"?"#d07060":"var(--gray)"}}>{m.status}</span></div>
+              <div className="match-edit-teams">{teamName(m.home_team)} — {teamName(m.away_team)}</div>
+              <div className="match-edit-meta">
+                {stageLabel(m.stage)} · {formatDate(m.kickoff)} · <span style={{color:m.status==="finished"?"var(--gold)":m.status==="live"?"#d07060":"var(--gray)"}}>{m.status}</span>
+              </div>
             </div>
             <div className="match-edit-controls">
               {m.status==="finished" && <span className="current-score">{m.score_home}–{m.score_away}</span>}

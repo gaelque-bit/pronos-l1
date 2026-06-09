@@ -1,0 +1,22 @@
+{
+  "name": "Pronos Coupe du Monde 2026",
+  "short_name": "Pronos 2026",
+  "description": "Pronostiquez les matchs de la Coupe du Monde 2026",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0b0a",
+  "theme_color": "#c9a84c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

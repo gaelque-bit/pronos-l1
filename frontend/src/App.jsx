@@ -200,6 +200,7 @@ const CSS = `
   .rank-total { font-family:var(--font-display); font-size:1.4rem; font-weight:600; color:var(--gold); text-align:right; }
   .rank-total span { font-family:var(--font-body); font-size:0.65rem; color:var(--gray); margin-left:2px; }
   .rank-hint { font-size:0.62rem; color:var(--gray); text-align:center; margin-bottom:12px; letter-spacing:0.06em; }
+  .streak-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.68rem; color:#e07060; margin-left:8px; font-weight:600; }
   .distinctions-grid { display:flex; flex-direction:column; gap:8px; }
   .distinction-card { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:14px 18px; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px; transition:border-color var(--transition); }
   .distinction-card:hover { border-color:rgba(201,168,76,0.22); }
@@ -243,6 +244,10 @@ const CSS = `
   .bonus-confirmed-badge { display:flex; align-items:center; gap:8px; padding:0 20px 16px; font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--gold); }
   .bonus-confirmed-badge::before { content:'✦'; font-size:0.6rem; }
   .bonus-locked-msg { padding:0 20px 14px; font-size:0.7rem; color:var(--gray); text-transform:uppercase; font-style:italic; }
+  .bonus-other-wrap { padding:0 20px 16px; }
+  .bonus-other-input { width:100%; padding:10px 14px; background:var(--charcoal); border:1px solid rgba(201,168,76,0.15); border-radius:var(--radius); color:var(--cream); font-family:var(--font-body); font-size:0.85rem; outline:none; transition:border-color var(--transition); }
+  .bonus-other-input:focus { border-color:var(--gold); }
+  .bonus-other-input::placeholder { color:var(--gray); opacity:0.5; }
   .empty { text-align:center; padding:48px 0; color:var(--gray); font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; }
   .empty-icon { font-size:2rem; margin-bottom:10px; opacity:0.5; }
   .spinner { width:22px; height:22px; border:1px solid rgba(201,168,76,0.15); border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; margin:40px auto; }
@@ -301,15 +306,19 @@ const CSS = `
   .histo-pts.p2 { color:var(--gold-dim); }
   .histo-pts.p0 { color:var(--gray); }
   .histo-pts.pending { color:var(--gray); font-family:var(--font-body); font-size:0.65rem; }
-
-  /* Graphique évolution */
   .evolution-wrap { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:20px; margin-bottom:24px; }
   .evolution-canvas-wrap { width:100%; overflow-x:auto; }
   .evolution-legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
-  .evolution-legend-item { display:flex; align-items:center; gap:6px; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--gray); cursor:pointer; transition:opacity var(--transition); }
+  .evolution-legend-item { display:flex; align-items:center; gap:6px; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--gray); }
   .evolution-legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
 
-  /* Mobile */
+  /* Réactions */
+  .reactions-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .reaction-btn { display:flex; align-items:center; gap:4px; padding:4px 10px; background:var(--charcoal); border:1px solid rgba(255,255,255,0.06); border-radius:20px; cursor:pointer; font-size:0.78rem; color:var(--gray); transition:all var(--transition); font-family:var(--font-body); }
+  .reaction-btn:hover { border-color:rgba(201,168,76,0.25); background:rgba(201,168,76,0.06); }
+  .reaction-btn.reacted { border-color:rgba(201,168,76,0.35); background:rgba(201,168,76,0.1); color:var(--gold); }
+  .reaction-count { font-size:0.7rem; font-weight:600; }
+
   @media (max-width: 600px) {
     .app { padding:0 12px 60px; }
     .header { padding:16px 0 14px; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
@@ -392,10 +401,22 @@ function ptsClass(pts) {
 
 const BONUS_QUESTIONS = [
   { id:"winner", label:"Question Bonus I", title:"Quel pays remportera la Coupe du Monde 2026 ?", points:15, lockDate:"2026-06-11T18:00:00Z",
-    choices:[{id:"FRA",flag:"🇫🇷",label:"France"},{id:"BRA",flag:"🇧🇷",label:"Brésil"},{id:"ARG",flag:"🇦🇷",label:"Argentine"},{id:"ENG",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",label:"Angleterre"},{id:"ESP",flag:"🇪🇸",label:"Espagne"},{id:"GER",flag:"🇩🇪",label:"Allemagne"},{id:"POR",flag:"🇵🇹",label:"Portugal"},{id:"MAR",flag:"🇲🇦",label:"Maroc"},{id:"USA",flag:"🇺🇸",label:"États-Unis"},{id:"NED",flag:"🇳🇱",label:"Pays-Bas"}]
+    choices:[
+      {id:"FRA",flag:"🇫🇷",label:"France"},{id:"BRA",flag:"🇧🇷",label:"Brésil"},{id:"ARG",flag:"🇦🇷",label:"Argentine"},
+      {id:"ENG",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",label:"Angleterre"},{id:"ESP",flag:"🇪🇸",label:"Espagne"},{id:"GER",flag:"🇩🇪",label:"Allemagne"},
+      {id:"POR",flag:"🇵🇹",label:"Portugal"},{id:"MAR",flag:"🇲🇦",label:"Maroc"},{id:"USA",flag:"🇺🇸",label:"États-Unis"},
+      {id:"NED",flag:"🇳🇱",label:"Pays-Bas"}
+    ]
   },
   { id:"topscorer", label:"Question Bonus II", title:"Qui sera le meilleur buteur du tournoi ?", points:10, lockDate:"2026-06-11T18:00:00Z",
-    choices:[{id:"MBP",flag:"🇫🇷",label:"Kylian Mbappé"},{id:"VIN",flag:"🇧🇷",label:"Vinícius Jr."},{id:"LAU",flag:"🇦🇷",label:"Lautaro Martínez"},{id:"KAN",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",label:"Harry Kane"},{id:"YAM",flag:"🇪🇸",label:"Lamine Yamal"},{id:"KAI",flag:"🇩🇪",label:"Kai Havertz"},{id:"HAA",flag:"🇳🇴",label:"Erling Haaland"},{id:"OSI",flag:"🇳🇬",label:"Victor Osimhen"},{id:"PUL",flag:"🇺🇸",label:"Christian Pulisic"},{id:"ARD",flag:"🇹🇷",label:"Arda Güler"}]
+    choices:[
+      {id:"MBP",flag:"🇫🇷",label:"Kylian Mbappé"},{id:"VIN",flag:"🇧🇷",label:"Vinícius Jr."},
+      {id:"LAU",flag:"🇦🇷",label:"Lautaro Martínez"},{id:"KAN",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",label:"Harry Kane"},
+      {id:"YAM",flag:"🇪🇸",label:"Lamine Yamal"},{id:"KAI",flag:"🇩🇪",label:"Kai Havertz"},
+      {id:"HAA",flag:"🇳🇴",label:"Erling Haaland"},{id:"OSI",flag:"🇳🇬",label:"Victor Osimhen"},
+      {id:"PUL",flag:"🇺🇸",label:"Christian Pulisic"},{id:"ARD",flag:"🇹🇷",label:"Arda Güler"},
+      {id:"OTHER",flag:"🌍",label:"Autre joueur…"}
+    ]
   },
 ];
 
@@ -411,7 +432,8 @@ const DEFAULT_DISTINCTIONS = [
   { emoji:"🇫🇷", label:"Meilleur pronostic France", username:null, detail:"—" },
 ];
 
-// ── Graphique évolution ───────────────────────────────────────────────────────
+const REACTIONS = ["👍","🔥","😂","😮","👏","💪"];
+
 function EvolutionChart({ data }) {
   if (!data || data.days.length === 0) return (
     <div className="empty" style={{padding:"24px 0"}}>
@@ -423,7 +445,6 @@ function EvolutionChart({ data }) {
   const W = 600, H = 220, PAD = { top:16, right:16, bottom:28, left:36 };
   const chartW = W - PAD.left - PAD.right;
   const chartH = H - PAD.top - PAD.bottom;
-
   const allPts = data.series.flatMap(s => s.points);
   const maxPts = Math.max(...allPts, 1);
   const days   = data.days;
@@ -773,6 +794,7 @@ function PronoCard({ match, prediction, token, onPredicted }) {
   const [away,setAway]=useState(prediction?.pred_away??"");
   const [saving,setSaving]=useState(false);
   const [msg,setMsg]=useState("");
+  const [reactions,setReactions]=useState({});
 
   useEffect(()=>{ setHome(prediction?.pred_home??""); setAway(prediction?.pred_away??""); },[prediction]);
 
@@ -786,6 +808,13 @@ function PronoCard({ match, prediction, token, onPredicted }) {
     return { label:"À pronostiquer", color:"var(--gold)", bg:"rgba(201,168,76,0.08)", border:"rgba(201,168,76,0.25)" };
   }
   const pronoStatus = getPronoStatus();
+
+  function toggleReaction(emoji) {
+    setReactions(r => {
+      const prev = r[emoji] || { count:0, reacted:false };
+      return { ...r, [emoji]: { count: prev.reacted ? prev.count-1 : prev.count+1, reacted: !prev.reacted } };
+    });
+  }
 
   async function handlePredict() {
     if (home===""||away==="") { setMsg("Saisis les deux scores."); return; }
@@ -840,6 +869,21 @@ function PronoCard({ match, prediction, token, onPredicted }) {
         <div className="prono-input-row"><span className="prono-label" style={{color:"var(--gray)"}}>Pronostics fermés</span></div>
       )}
       {msg && <div style={{marginTop:8,fontSize:"0.78rem",color:msg.startsWith("✓")?"#7dcc8a":"#f08080"}}>{msg}</div>}
+
+      {/* Réactions — visibles sur les matchs terminés */}
+      {match.status==="finished" && (
+        <div className="reactions-row">
+          {REACTIONS.map(emoji => {
+            const r = reactions[emoji] || { count:0, reacted:false };
+            return (
+              <button key={emoji} className={`reaction-btn ${r.reacted?"reacted":""}`} onClick={()=>toggleReaction(emoji)}>
+                <span>{emoji}</span>
+                {r.count > 0 && <span className="reaction-count">{r.count}</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -943,6 +987,7 @@ function DistinctionsScreen({ token }) {
 function RankingScreen({ currentUser, token }) {
   const [ranking,setRanking]     = useState([]);
   const [evolution,setEvolution] = useState(null);
+  const [series,setSeries]       = useState([]);
   const [loading,setLoading]     = useState(true);
   const [subTab,setSubTab]       = useState("classement");
   const [histoUser,setHistoUser] = useState(null);
@@ -951,14 +996,22 @@ function RankingScreen({ currentUser, token }) {
     Promise.all([
       apiCall("/ranking"),
       apiCall("/evolution"),
-    ]).then(([r,e])=>{ setRanking(r.classement||[]); setEvolution(e); })
-      .catch(console.error)
-      .finally(()=>setLoading(false));
+      apiCall("/series"),
+    ]).then(([r,e,s])=>{
+      setRanking(r.classement||[]);
+      setEvolution(e);
+      setSeries(s.series||[]);
+    }).catch(console.error).finally(()=>setLoading(false));
   },[]);
 
   const top3=ranking.filter(r=>r.rang<=3).slice(0,3);
   const podium=[top3[1],top3[0],top3[2]].filter(Boolean);
   if (loading) return <div className="spinner"/>;
+
+  function getStreak(userId) {
+    const s = series.find(s=>s.id===userId);
+    return s?.streak || 0;
+  }
 
   return (
     <div>
@@ -978,7 +1031,10 @@ function RankingScreen({ currentUser, token }) {
                 <div key={p.id} className={`podium-card rank-${p.rang}`} onClick={()=>setHistoUser(p)}>
                   {p.rang===1&&<div className="crown">🏆</div>}
                   <div className="podium-rank">#{p.rang}</div>
-                  <div className="podium-name">{p.username}</div>
+                  <div className="podium-name">
+                    {p.username}
+                    {getStreak(p.id)>=2&&<span style={{fontSize:"0.7rem",marginLeft:4}}>🔥{getStreak(p.id)}</span>}
+                  </div>
                   <div className="podium-pts">{p.total}<span style={{fontSize:"0.72rem",fontFamily:"var(--font-body)",color:"var(--gray)",marginLeft:4}}>pts</span></div>
                   {p.scores_exacts>0&&<div style={{fontSize:"0.7rem",color:"var(--gray)",marginTop:4}}>{p.scores_exacts} exact{p.scores_exacts>1?"s":""}</div>}
                 </div>
@@ -1005,16 +1061,23 @@ function RankingScreen({ currentUser, token }) {
             <>
               <div className="rank-hint">Clique sur un joueur pour voir ses pronostics</div>
               <div className="rank-list">
-                {ranking.map(row=>(
-                  <div key={row.id} className={`rank-row ${row.id===currentUser?.id?"me":""}`} onClick={()=>setHistoUser(row)}>
-                    <div className="rank-num">{row.rang}</div>
-                    <div>
-                      <div className="rank-username">{row.username}{row.id===currentUser?.id&&<span style={{fontSize:"0.68rem",color:"var(--gold)",marginLeft:8}}>← toi</span>}</div>
-                      <div className="rank-detail">{row.pronos_joues} matchs · {row.scores_exacts} exacts{row.points_bonus>0?` · +${row.points_bonus} bonus`:""}</div>
+                {ranking.map(row=>{
+                  const streak = getStreak(row.id);
+                  return (
+                    <div key={row.id} className={`rank-row ${row.id===currentUser?.id?"me":""}`} onClick={()=>setHistoUser(row)}>
+                      <div className="rank-num">{row.rang}</div>
+                      <div>
+                        <div className="rank-username">
+                          {row.username}
+                          {row.id===currentUser?.id&&<span style={{fontSize:"0.68rem",color:"var(--gold)",marginLeft:8}}>← toi</span>}
+                          {streak>=2&&<span className="streak-badge">🔥{streak}</span>}
+                        </div>
+                        <div className="rank-detail">{row.pronos_joues} matchs · {row.scores_exacts} exacts{row.points_bonus>0?` · +${row.points_bonus} bonus`:""}</div>
+                      </div>
+                      <div className="rank-total">{row.total}<span>pts</span></div>
                     </div>
-                    <div className="rank-total">{row.total}<span>pts</span></div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}
@@ -1034,23 +1097,47 @@ function RankingScreen({ currentUser, token }) {
 }
 
 function BonusScreen({ token }) {
-  const [answers,setAnswers]=useState({});
-  const [confirmed,setConfirmed]=useState({});
-  const [saving,setSaving]=useState({});
+  const [answers,setAnswers]     = useState({});
+  const [confirmed,setConfirmed] = useState({});
+  const [saving,setSaving]       = useState({});
+  const [otherText,setOtherText] = useState({});
+
   function isLocked(q){return new Date()>=new Date(q.lockDate);}
-  function handleSelect(qId,cId){ if (confirmed[qId]||isLocked(BONUS_QUESTIONS.find(q=>q.id===qId))) return; setAnswers(a=>({...a,[qId]:cId})); }
+
+  function handleSelect(qId,cId){
+    if (confirmed[qId]||isLocked(BONUS_QUESTIONS.find(q=>q.id===qId))) return;
+    setAnswers(a=>({...a,[qId]:cId}));
+  }
+
   async function handleConfirm(question){
     const cId=answers[question.id]; if (!cId) return;
+    const answerId = cId==="OTHER" ? `OTHER:${otherText[question.id]||""}` : cId;
+    if (cId==="OTHER" && !otherText[question.id]?.trim()) return;
     setSaving(s=>({...s,[question.id]:true}));
-    try { await apiCall("/bonus",{method:"POST",body:JSON.stringify({questionId:question.id,answerId:cId})},token); setConfirmed(c=>({...c,[question.id]:cId})); }
-    catch(e){ console.error(e); } finally{setSaving(s=>({...s,[question.id]:false}));}
+    try {
+      await apiCall("/bonus",{method:"POST",body:JSON.stringify({questionId:question.id,answerId})},token);
+      setConfirmed(c=>({...c,[question.id]:cId}));
+    } catch(e){ console.error(e); }
+    finally{setSaving(s=>({...s,[question.id]:false}));}
   }
+
   useEffect(()=>{
     apiCall("/bonus",{},token).then(d=>{
-      if (d.bonus) { const c={}; if (d.bonus.winner_id) c["winner"]=d.bonus.winner_id; if (d.bonus.top_scorer_id) c["topscorer"]=d.bonus.top_scorer_id; setConfirmed(c); setAnswers(c); }
+      if (d.bonus) {
+        const c={};
+        if (d.bonus.winner_id) c["winner"]=d.bonus.winner_id;
+        if (d.bonus.top_scorer_id) {
+          const id = d.bonus.top_scorer_id;
+          if (id.startsWith("OTHER:")) { c["topscorer"]="OTHER"; setOtherText(o=>({...o,topscorer:id.replace("OTHER:","")})); }
+          else c["topscorer"]=id;
+        }
+        setConfirmed(c); setAnswers(c);
+      }
     }).catch(()=>{});
   },[]);
+
   const totalPts=BONUS_QUESTIONS.reduce((s,q)=>s+q.points,0);
+
   return (
     <div>
       <div className="bonus-intro">
@@ -1061,8 +1148,13 @@ function BonusScreen({ token }) {
         </div>
       </div>
       {BONUS_QUESTIONS.map(question=>{
-        const locked=isLocked(question); const answered=!!confirmed[question.id]; const selected=answers[question.id];
+        const locked=isLocked(question);
+        const answered=!!confirmed[question.id];
+        const selected=answers[question.id];
         const cc=question.choices.find(c=>c.id===confirmed[question.id]);
+        const isOtherSelected = selected==="OTHER";
+        const isOtherConfirmed = confirmed[question.id]==="OTHER";
+
         return (
           <div key={question.id} className={`bonus-question ${answered?"answered":""}`}>
             <div className="bonus-q-header">
@@ -1075,17 +1167,43 @@ function BonusScreen({ token }) {
                   <div className="choice-radio"><div className="choice-radio-dot"/></div>
                   <span className="choice-flag">{choice.flag}</span>
                   <span className="choice-label">{choice.label}</span>
-                  {confirmed[question.id]===choice.id&&<span style={{fontSize:"0.65rem",color:"var(--gold)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Votre choix</span>}
+                  {confirmed[question.id]===choice.id&&choice.id!=="OTHER"&&<span style={{fontSize:"0.65rem",color:"var(--gold)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Votre choix</span>}
                 </button>
               ))}
             </div>
-            {!locked&&!answered&&(
-              <div className="bonus-confirm-row">
-                <span className="bonus-confirm-hint">{selected?`Sélectionné : ${question.choices.find(c=>c.id===selected)?.label}`:"Sélectionnez une réponse"}</span>
-                <button className="btn-bonus-confirm" onClick={()=>handleConfirm(question)} disabled={!selected||saving[question.id]}>{saving[question.id]?"Envoi…":"Confirmer"}</button>
+
+            {/* Champ texte si "Autre" sélectionné */}
+            {isOtherSelected && !answered && (
+              <div className="bonus-other-wrap">
+                <input
+                  className="bonus-other-input"
+                  placeholder="Nom du joueur..."
+                  value={otherText[question.id]||""}
+                  onChange={e=>setOtherText(o=>({...o,[question.id]:e.target.value}))}
+                />
               </div>
             )}
-            {answered&&<div className="bonus-confirmed-badge">Réponse enregistrée — {cc?.flag} {cc?.label}</div>}
+
+            {!locked&&!answered&&(
+              <div className="bonus-confirm-row">
+                <span className="bonus-confirm-hint">
+                  {selected
+                    ? isOtherSelected
+                      ? otherText[question.id]?.trim() ? `Sélectionné : ${otherText[question.id]}` : "Saisis le nom du joueur"
+                      : `Sélectionné : ${question.choices.find(c=>c.id===selected)?.label}`
+                    : "Sélectionnez une réponse"
+                  }
+                </span>
+                <button className="btn-bonus-confirm" onClick={()=>handleConfirm(question)} disabled={!selected||saving[question.id]||(isOtherSelected&&!otherText[question.id]?.trim())}>
+                  {saving[question.id]?"Envoi…":"Confirmer"}
+                </button>
+              </div>
+            )}
+            {answered&&(
+              <div className="bonus-confirmed-badge">
+                Réponse enregistrée — {isOtherConfirmed ? `🌍 ${otherText[question.id]||"Autre"}` : `${cc?.flag} ${cc?.label}`}
+              </div>
+            )}
             {locked&&!answered&&<div className="bonus-locked-msg">Pronostics bonus fermés</div>}
           </div>
         );

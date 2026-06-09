@@ -76,6 +76,19 @@ const ADMIN_CSS = `
   .btn-confirm-yes:hover { background:rgba(192,57,43,0.25); }
   .btn-confirm-no { flex:1; padding:10px; background:var(--muted); border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius); color:var(--gray); font-family:var(--font-body); font-size:0.7rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:all var(--transition); }
   .btn-confirm-no:hover { color:var(--cream); }
+
+  /* Dashboard */
+  .dashboard-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:28px; }
+  .dashboard-stat { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:18px 20px; }
+  .dashboard-stat-val { font-family:var(--font-display); font-size:2.2rem; font-weight:600; color:var(--gold); line-height:1; }
+  .dashboard-stat-label { font-size:0.62rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.1em; margin-top:6px; }
+  .dashboard-stat-sub { font-size:0.72rem; color:var(--gold-dim); margin-top:4px; }
+  .dashboard-info { display:flex; flex-direction:column; gap:10px; }
+  .dashboard-info-row { background:var(--coal); border:1px solid rgba(201,168,76,0.08); border-radius:var(--radius); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .dashboard-info-label { font-size:0.68rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.1em; font-weight:600; margin-bottom:3px; }
+  .dashboard-info-val { font-size:0.85rem; color:var(--cream); font-weight:600; }
+  .dashboard-progress { width:100%; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; margin-top:8px; overflow:hidden; }
+  .dashboard-progress-bar { height:100%; background:var(--gold); border-radius:3px; transition:width 0.6s ease; }
 `;
 
 function formatDate(iso) {
@@ -93,7 +106,7 @@ function Toast({ msg, type, onDone }) {
 function Confirm({ text, onYes, onNo }) {
   return (
     <div className="confirm-overlay" onClick={onNo}>
-      <div className="confirm-box" onClick={e => e.stopPropagation()}>
+      <div className="confirm-box" onClick={e=>e.stopPropagation()}>
         <h4>Confirmation</h4>
         <p>{text}</p>
         <div className="confirm-actions">
@@ -145,6 +158,78 @@ function AdminLogin({ onLogin }) {
   );
 }
 
+function DashboardTab({ token }) {
+  const [stats, setStats]   = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiCall("/admin/stats", {}, token)
+      .then(d => setStats(d))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="spinner"/>;
+  if (!stats) return <div className="empty">Erreur de chargement.</div>;
+
+  return (
+    <div>
+      <div className="dashboard-grid">
+        <div className="dashboard-stat">
+          <div className="dashboard-stat-val">{stats.totalUsers}</div>
+          <div className="dashboard-stat-label">Participants</div>
+          <div className="dashboard-stat-sub">{stats.usersActifs} actifs</div>
+        </div>
+        <div className="dashboard-stat">
+          <div className="dashboard-stat-val">{stats.totalPredictions}</div>
+          <div className="dashboard-stat-label">Pronostics</div>
+          <div className="dashboard-stat-sub">sur {stats.totalMatches} matchs</div>
+        </div>
+        <div className="dashboard-stat">
+          <div className="dashboard-stat-val">{stats.tauxParticipation}%</div>
+          <div className="dashboard-stat-label">Taux de participation</div>
+          <div className="dashboard-progress"><div className="dashboard-progress-bar" style={{width:`${stats.tauxParticipation}%`}}/></div>
+        </div>
+        <div className="dashboard-stat">
+          <div className="dashboard-stat-val">{stats.scoresExacts}</div>
+          <div className="dashboard-stat-label">Scores exacts</div>
+          <div className="dashboard-stat-sub">6 pts chacun</div>
+        </div>
+        <div className="dashboard-stat">
+          <div className="dashboard-stat-val">{stats.pointsBonus}</div>
+          <div className="dashboard-stat-label">Points bonus</div>
+          <div className="dashboard-stat-sub">attribués</div>
+        </div>
+      </div>
+
+      <div style={{fontFamily:"var(--font-display)",fontSize:"1.1rem",fontWeight:400,fontStyle:"italic",color:"var(--gold)",marginBottom:14,display:"flex",alignItems:"center",gap:12}}>
+        Détails
+        <span style={{flex:1,height:1,background:"linear-gradient(to right,rgba(201,168,76,0.25),transparent)"}}/>
+      </div>
+      <div className="dashboard-info">
+        <div className="dashboard-info-row">
+          <div>
+            <div className="dashboard-info-label">🥇 Meilleur score</div>
+            <div className="dashboard-info-val">{stats.meilleurScore}</div>
+          </div>
+        </div>
+        <div className="dashboard-info-row">
+          <div>
+            <div className="dashboard-info-label">🔥 Match le plus pronostiqué</div>
+            <div className="dashboard-info-val">{stats.matchPlus}</div>
+          </div>
+        </div>
+        <div className="dashboard-info-row">
+          <div>
+            <div className="dashboard-info-label">❄️ Match le moins pronostiqué</div>
+            <div className="dashboard-info-val">{stats.matchMoins}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function UsersTab({ token }) {
   const [users, setUsers]       = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -176,13 +261,7 @@ function UsersTab({ token }) {
   return (
     <div>
       {toast && <Toast msg={toast.msg} type={toast.type} onDone={()=>setToast(null)}/>}
-      {confirm && (
-        <Confirm
-          text={`Supprimer ${confirm.username} et tous ses pronostics ? Cette action est irréversible.`}
-          onYes={handleDelete}
-          onNo={()=>setConfirm(null)}
-        />
-      )}
+      {confirm && <Confirm text={`Supprimer ${confirm.username} et tous ses pronostics ? Cette action est irréversible.`} onYes={handleDelete} onNo={()=>setConfirm(null)}/>}
       <div className="admin-stats">
         <div className="admin-stat"><div className="admin-stat-val">{users.length}</div><div className="admin-stat-label">Participants</div></div>
         <div className="admin-stat"><div className="admin-stat-val">{users.filter(u=>u.pronos_count>0).length}</div><div className="admin-stat-label">Actifs</div></div>
@@ -235,21 +314,15 @@ function ScoresTab({ token }) {
       .finally(() => setLoading(false));
   }, []);
 
-  function getEdit(m) {
-    return edits[m.id] ?? { home: m.score_home ?? "", away: m.score_away ?? "" };
-  }
-  function setEdit(id, field, val) {
-    setEdits(e => ({ ...e, [id]: { ...getEdit(matches.find(m=>m.id===id)), [field]: val } }));
-  }
+  function getEdit(m) { return edits[m.id] ?? { home: m.score_home ?? "", away: m.score_away ?? "" }; }
+  function setEdit(id, field, val) { setEdits(e => ({ ...e, [id]: { ...getEdit(matches.find(m=>m.id===id)), [field]: val } })); }
 
   async function handleSave(match) {
     const e = getEdit(match);
     if (e.home===""||e.away==="") { setToast({ msg:"Saisis les deux scores.", type:"err" }); return; }
     setSaving(match.id);
     try {
-      const d = await apiCall(`/admin/matches/${match.id}`, {
-        method:"PATCH", body:JSON.stringify({ score_home:+e.home, score_away:+e.away })
-      }, token);
+      const d = await apiCall(`/admin/matches/${match.id}`, { method:"PATCH", body:JSON.stringify({ score_home:+e.home, score_away:+e.away }) }, token);
       setToast({ msg:d.message, type:"ok" });
       setMatches(ms => ms.map(m => m.id===match.id ? {...m, score_home:+e.home, score_away:+e.away, status:"finished"} : m));
     } catch(err) { setToast({ msg:err.message, type:"err" }); }
@@ -278,9 +351,7 @@ function ScoresTab({ token }) {
           <div className="match-edit-row" key={m.id}>
             <div>
               <div className="match-edit-teams">{m.home_team} — {m.away_team}</div>
-              <div className="match-edit-meta">
-                {stageLabel(m.stage)} · {formatDate(m.kickoff)} · <span style={{color:m.status==="finished"?"var(--gold)":m.status==="live"?"#d07060":"var(--gray)"}}>{m.status}</span>
-              </div>
+              <div className="match-edit-meta">{stageLabel(m.stage)} · {formatDate(m.kickoff)} · <span style={{color:m.status==="finished"?"var(--gold)":m.status==="live"?"#d07060":"var(--gray)"}}>{m.status}</span></div>
             </div>
             <div className="match-edit-controls">
               {m.status==="finished" && <span className="current-score">{m.score_home}–{m.score_away}</span>}
@@ -315,7 +386,7 @@ function SyncTab({ token }) {
     <div>
       <div className="sync-panel">
         <h3>Synchronisation des matchs</h3>
-        <p>Déclenche manuellement la synchronisation avec <strong style={{color:"var(--cream)"}}>football-data.org</strong>. Le cron job tourne automatiquement toutes les heures, mais tu peux forcer une mise à jour ici.</p>
+        <p>Déclenche manuellement la synchronisation avec <strong style={{color:"var(--cream)"}}>football-data.org</strong>. Le cron job tourne automatiquement toutes les 15 minutes pendant les matchs.</p>
         <button className="btn-sync" onClick={handleSync} disabled={syncing}>
           {syncing ? "Synchronisation en cours…" : "⟳ Lancer la synchronisation"}
         </button>
@@ -332,7 +403,7 @@ function SyncTab({ token }) {
 export default function AdminScreen({ onBack }) {
   const [adminToken, setAdminToken] = useState(null);
   const [adminUser, setAdminUser]   = useState(null);
-  const [tab, setTab]               = useState("users");
+  const [tab, setTab]               = useState("dashboard");
 
   function handleLogin(token, user) { setAdminToken(token); setAdminUser(user); }
   function handleLogout() { setAdminToken(null); setAdminUser(null); }
@@ -355,13 +426,15 @@ export default function AdminScreen({ onBack }) {
             </div>
           </div>
           <div className="admin-tabs">
+            <button className={`admin-tab ${tab==="dashboard"?"active":""}`} onClick={()=>setTab("dashboard")}>📊 Dashboard</button>
             <button className={`admin-tab ${tab==="users"?"active":""}`} onClick={()=>setTab("users")}>👥 Participants</button>
             <button className={`admin-tab ${tab==="scores"?"active":""}`} onClick={()=>setTab("scores")}>⚽ Scores</button>
             <button className={`admin-tab ${tab==="sync"?"active":""}`} onClick={()=>setTab("sync")}>⟳ Sync</button>
           </div>
-          {tab==="users"  && <UsersTab token={adminToken}/>}
-          {tab==="scores" && <ScoresTab token={adminToken}/>}
-          {tab==="sync"   && <SyncTab token={adminToken}/>}
+          {tab==="dashboard" && <DashboardTab token={adminToken}/>}
+          {tab==="users"     && <UsersTab token={adminToken}/>}
+          {tab==="scores"    && <ScoresTab token={adminToken}/>}
+          {tab==="sync"      && <SyncTab token={adminToken}/>}
         </div>
       )}
     </>

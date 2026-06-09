@@ -38,7 +38,7 @@ const ADMIN_CSS = `
   .admin-login-wrap { min-height:72vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px; }
   .admin-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.25); border-radius:2px; padding:5px 14px; font-size:0.65rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:var(--gold); margin-bottom:4px; }
   .admin-wrap { padding-bottom:80px; }
-  .admin-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; padding-bottom:16px; border-bottom:1px solid rgba(201,168,76,0.15); }
+  .admin-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; padding-bottom:16px; border-bottom:1px solid rgba(201,168,76,0.15); flex-wrap:wrap; gap:12px; }
   .admin-title { font-family:var(--font-display); font-size:1.5rem; font-weight:400; font-style:italic; color:var(--gold); }
   .admin-subtitle { font-size:0.7rem; color:var(--gray); letter-spacing:0.1em; text-transform:uppercase; margin-top:2px; }
   .btn-admin-logout { background:none; border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius); cursor:pointer; color:var(--gray); font-size:0.68rem; font-family:var(--font-body); letter-spacing:0.08em; padding:6px 14px; transition:all var(--transition); }
@@ -47,7 +47,7 @@ const ADMIN_CSS = `
   .admin-tab { padding:9px 20px; background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:2px; cursor:pointer; font-family:var(--font-body); font-size:0.72rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--gray); transition:all var(--transition); }
   .admin-tab.active { background:rgba(201,168,76,0.1); border-color:rgba(201,168,76,0.35); color:var(--gold); }
   .admin-tab:hover:not(.active) { color:var(--cream); }
-  .admin-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:28px; }
+  .admin-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:16px; }
   .admin-stat { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:14px 18px; }
   .admin-stat-val { font-family:var(--font-display); font-size:2rem; font-weight:600; color:var(--gold); line-height:1; }
   .admin-stat-label { font-size:0.62rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.1em; margin-top:4px; }
@@ -113,6 +113,7 @@ const ADMIN_CSS = `
   .dashboard-info-val { font-size:0.85rem; color:var(--cream); font-weight:600; }
   .dashboard-progress { width:100%; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; margin-top:8px; overflow:hidden; }
   .dashboard-progress-bar { height:100%; background:var(--gold); border-radius:3px; transition:width 0.6s ease; }
+  .csv-row { display:flex; justify-content:flex-end; margin-bottom:16px; }
 `;
 
 function formatDate(iso) {
@@ -231,7 +232,6 @@ function DashboardTab({ token }) {
           <div className="dashboard-stat-sub">attribués</div>
         </div>
       </div>
-
       <div className="dashboard-section-title">Détails</div>
       <div className="dashboard-info">
         <div className="dashboard-info-row">
@@ -277,6 +277,26 @@ function UsersTab({ token }) {
     finally { setDeleting(null); }
   }
 
+  function exportCSV() {
+    const header = ["ID","Utilisateur","Rôle","Pronos","Points","Inscrit le"];
+    const rows = users.map(u => [
+      u.id,
+      u.username,
+      u.role,
+      u.pronos_count,
+      u.total_points,
+      u.created_at ? new Date(u.created_at).toLocaleDateString("fr-FR") : "—"
+    ]);
+    const csv = [header, ...rows].map(r => r.join(";")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type:"text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pronos-participants-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const totalPronos = users.reduce((s,u) => s + u.pronos_count, 0);
 
   return (
@@ -287,6 +307,9 @@ function UsersTab({ token }) {
         <div className="admin-stat"><div className="admin-stat-val">{users.length}</div><div className="admin-stat-label">Participants</div></div>
         <div className="admin-stat"><div className="admin-stat-val">{users.filter(u=>u.pronos_count>0).length}</div><div className="admin-stat-label">Actifs</div></div>
         <div className="admin-stat"><div className="admin-stat-val">{totalPronos}</div><div className="admin-stat-label">Pronostics total</div></div>
+      </div>
+      <div className="csv-row">
+        <button className="btn-save-score" onClick={exportCSV}>⬇ Exporter CSV</button>
       </div>
       {loading ? <div className="spinner"/> : (
         <div className="admin-table-wrap">
@@ -443,7 +466,7 @@ export default function AdminScreen({ onBack }) {
               <div className="admin-title">Panneau d'administration</div>
               <div className="admin-subtitle">Connecté en tant que {adminUser?.username}</div>
             </div>
-            <div style={{display:"flex",gap:10}}>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
               <button className="btn-admin-logout" onClick={onBack}>← Retour</button>
               <button className="btn-admin-logout" onClick={handleLogout}>Déconnexion admin</button>
             </div>

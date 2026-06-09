@@ -45,6 +45,11 @@ const TEAM_NAMES_FR = {
 const flag     = (name) => FLAGS[name] || "🏳️";
 const teamName = (name) => TEAM_NAMES_FR[name] || name;
 
+const CHART_COLORS = [
+  "#c9a84c","#e8c97a","#7a6130","#f2ead8","#6b6358",
+  "#a78bfa","#60a5fa","#34d399","#f87171","#fb923c",
+];
+
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Josefin+Sans:wght@300;400;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -70,7 +75,7 @@ const CSS = `
   .tab-main { flex:1; padding:14px 10px; background:none; border:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; font-family:var(--font-body); font-size:0.75rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--gray); transition:all var(--transition); }
   .tab-main.active { color:var(--gold); border-bottom-color:var(--gold); }
   .tab-main:hover:not(.active) { color:var(--cream); }
-  .tabs-sub { display:flex; gap:6px; margin-bottom:24px; }
+  .tabs-sub { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
   .tab-sub { padding:7px 16px; background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:2px; cursor:pointer; font-family:var(--font-body); font-size:0.7rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--gray); transition:all var(--transition); }
   .tab-sub.active { background:rgba(201,168,76,0.1); border-color:rgba(201,168,76,0.3); color:var(--gold); }
   .tab-sub:hover:not(.active) { color:var(--cream); }
@@ -174,10 +179,11 @@ const CSS = `
   .btn-ghost:hover { background:rgba(201,168,76,0.05); color:var(--cream); transform:none; }
   .error-msg { background:rgba(192,57,43,0.1); border:1px solid rgba(192,57,43,0.25); border-radius:var(--radius); padding:10px 14px; font-size:0.78rem; color:#d07060; margin-bottom:14px; }
   .podium { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:24px; align-items:end; }
-  .podium-card { background:var(--coal); border-radius:var(--radius); padding:16px 12px; text-align:center; border:1px solid rgba(201,168,76,0.1); position:relative; overflow:hidden; }
+  .podium-card { background:var(--coal); border-radius:var(--radius); padding:16px 12px; text-align:center; border:1px solid rgba(201,168,76,0.1); position:relative; overflow:hidden; cursor:pointer; }
   .podium-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:rgba(201,168,76,0.12); }
   .podium-card.rank-1 { border-color:rgba(201,168,76,0.35); background:rgba(201,168,76,0.06); padding-top:22px; margin-top:-12px; }
   .podium-card.rank-1::after { background:var(--gold); }
+  .podium-card:hover { border-color:rgba(201,168,76,0.3); background:rgba(201,168,76,0.08); }
   .podium-rank { font-family:var(--font-display); font-size:2rem; font-weight:400; font-style:italic; color:var(--gray); }
   .podium-card.rank-1 .podium-rank { color:var(--gold); font-size:2.6rem; }
   .podium-name { font-size:0.75rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; margin:6px 0 4px; }
@@ -281,8 +287,6 @@ const CSS = `
   .regles-bonus-desc { font-size:0.7rem; color:var(--gray); margin-top:2px; }
   .regles-bonus-pts { font-family:var(--font-display); font-size:1.3rem; font-weight:600; color:var(--gold); flex-shrink:0; }
   .regles-bonus-pts small { font-family:var(--font-body); font-size:0.6rem; color:var(--gray); display:block; text-align:right; }
-
-  /* Historique pronostics */
   .histo-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:20px; }
   .histo-stat { background:var(--charcoal); border:1px solid rgba(201,168,76,0.08); border-radius:var(--radius); padding:10px 12px; text-align:center; }
   .histo-stat-val { font-family:var(--font-display); font-size:1.4rem; font-weight:600; color:var(--gold); }
@@ -291,13 +295,19 @@ const CSS = `
   .histo-row { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; background:var(--charcoal); border:1px solid rgba(201,168,76,0.06); border-radius:var(--radius); padding:10px 14px; }
   .histo-match { font-size:0.78rem; font-weight:600; color:var(--cream); }
   .histo-score { font-size:0.7rem; color:var(--gray); margin-top:2px; }
-  .histo-prono { font-family:var(--font-display); font-size:0.95rem; color:var(--gray); }
   .histo-pts { font-family:var(--font-display); font-size:1.1rem; font-weight:600; }
   .histo-pts.p6 { color:var(--gold-light); }
   .histo-pts.p4 { color:var(--gold); }
   .histo-pts.p2 { color:var(--gold-dim); }
   .histo-pts.p0 { color:var(--gray); }
   .histo-pts.pending { color:var(--gray); font-family:var(--font-body); font-size:0.65rem; }
+
+  /* Graphique évolution */
+  .evolution-wrap { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:20px; margin-bottom:24px; }
+  .evolution-canvas-wrap { width:100%; overflow-x:auto; }
+  .evolution-legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+  .evolution-legend-item { display:flex; align-items:center; gap:6px; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--gray); cursor:pointer; transition:opacity var(--transition); }
+  .evolution-legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
 
   /* Mobile */
   @media (max-width: 600px) {
@@ -401,7 +411,80 @@ const DEFAULT_DISTINCTIONS = [
   { emoji:"🇫🇷", label:"Meilleur pronostic France", username:null, detail:"—" },
 ];
 
-// ── Modal Règles ──────────────────────────────────────────────────────────────
+// ── Graphique évolution ───────────────────────────────────────────────────────
+function EvolutionChart({ data }) {
+  const canvasRef = useEffect(() => {}, []);
+  const ref = useRef ? useRef(null) : { current: null };
+
+  const { useState: useS, useEffect: useE, useRef: useR } = { useState, useEffect, useRef: (v) => { const r = { current: v }; return r; } };
+
+  if (!data || data.days.length === 0) return (
+    <div className="empty" style={{padding:"24px 0"}}>
+      <div className="empty-icon">📈</div>
+      Le graphique apparaîtra dès la fin de la première journée.
+    </div>
+  );
+
+  const W = 600, H = 220, PAD = { top:16, right:16, bottom:28, left:36 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+
+  const allPts = data.series.flatMap(s => s.points);
+  const maxPts = Math.max(...allPts, 1);
+  const days   = data.days;
+
+  function xPos(i) { return PAD.left + (i / (days.length - 1 || 1)) * chartW; }
+  function yPos(v) { return PAD.top + chartH - (v / maxPts) * chartH; }
+
+  return (
+    <div className="evolution-wrap">
+      <div className="evolution-canvas-wrap">
+        <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{display:"block"}}>
+          {/* Grille */}
+          {[0,0.25,0.5,0.75,1].map(t => {
+            const y = PAD.top + chartH * (1-t);
+            return (
+              <g key={t}>
+                <line x1={PAD.left} y1={y} x2={W-PAD.right} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
+                <text x={PAD.left-6} y={y+4} textAnchor="end" fontSize="9" fill="#6b6358">{Math.round(maxPts*t)}</text>
+              </g>
+            );
+          })}
+
+          {/* Labels journées */}
+          {days.map((d,i) => (
+            <text key={d} x={xPos(i)} y={H-6} textAnchor="middle" fontSize="9" fill="#6b6358">J{d}</text>
+          ))}
+
+          {/* Lignes */}
+          {data.series.map((s,si) => {
+            const color = CHART_COLORS[si % CHART_COLORS.length];
+            const pts = [0, ...s.points];
+            const xs  = [-1, ...days.map((_,i)=>i)];
+            const path = xs.map((xi,i) => `${i===0?'M':'L'}${i===0?PAD.left:xPos(xi)} ${i===0?yPos(0):yPos(pts[i])}`).join(' ');
+            return (
+              <g key={s.id}>
+                <path d={path} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+                {s.points.map((v,i) => (
+                  <circle key={i} cx={xPos(i)} cy={yPos(v)} r="3" fill={color}/>
+                ))}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+      <div className="evolution-legend">
+        {data.series.map((s,si) => (
+          <div className="evolution-legend-item" key={s.id}>
+            <div className="evolution-legend-dot" style={{background:CHART_COLORS[si % CHART_COLORS.length]}}/>
+            <span>{s.username}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ReglesModal({ onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -465,7 +548,6 @@ function ReglesModal({ onClose }) {
   );
 }
 
-// ── Modal Historique ──────────────────────────────────────────────────────────
 function HistoriqueModal({ userId, token, onClose }) {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
@@ -502,7 +584,7 @@ function HistoriqueModal({ userId, token, onClose }) {
             <>
               <div className="histo-stats">
                 <div className="histo-stat"><div className="histo-stat-val">{totalPts + bonusPts}</div><div className="histo-stat-label">Total pts</div></div>
-                <div className="histo-stat"><div className="histo-stat-val">{joues}</div><div className="histo-stat-label">Matchs joués</div></div>
+                <div className="histo-stat"><div className="histo-stat-val">{joues}</div><div className="histo-stat-label">Matchs</div></div>
                 <div className="histo-stat"><div className="histo-stat-val">{exacts}</div><div className="histo-stat-label">Exacts</div></div>
                 <div className="histo-stat"><div className="histo-stat-val">{bonusPts}</div><div className="histo-stat-label">Bonus</div></div>
               </div>
@@ -520,7 +602,7 @@ function HistoriqueModal({ userId, token, onClose }) {
                           </div>
                           <div className="histo-score">
                             {masked
-                              ? <span style={{color:"var(--gray)",fontStyle:"italic"}}>Pronostic masqué avant le coup d'envoi</span>
+                              ? <span style={{color:"var(--gray)",fontStyle:"italic"}}>Masqué avant le coup d'envoi</span>
                               : p.status==="finished"
                                 ? `Score : ${p.score_home}–${p.score_away} · Prono : ${p.pred_home}–${p.pred_away}`
                                 : `Prono : ${p.pred_home}–${p.pred_away} · ${formatDateShort(p.kickoff)}`
@@ -869,12 +951,20 @@ function DistinctionsScreen({ token }) {
 }
 
 function RankingScreen({ currentUser, token }) {
-  const [ranking,setRanking]=useState([]);
-  const [loading,setLoading]=useState(true);
-  const [subTab,setSubTab]=useState("classement");
-  const [histoUser,setHistoUser]=useState(null);
+  const [ranking,setRanking]     = useState([]);
+  const [evolution,setEvolution] = useState(null);
+  const [loading,setLoading]     = useState(true);
+  const [subTab,setSubTab]       = useState("classement");
+  const [histoUser,setHistoUser] = useState(null);
 
-  useEffect(()=>{ apiCall("/ranking").then(d=>setRanking(d.classement||[])).catch(console.error).finally(()=>setLoading(false)); },[]);
+  useEffect(()=>{
+    Promise.all([
+      apiCall("/ranking"),
+      apiCall("/evolution"),
+    ]).then(([r,e])=>{ setRanking(r.classement||[]); setEvolution(e); })
+      .catch(console.error)
+      .finally(()=>setLoading(false));
+  },[]);
 
   const top3=ranking.filter(r=>r.rang<=3).slice(0,3);
   const podium=[top3[1],top3[0],top3[2]].filter(Boolean);
@@ -885,15 +975,17 @@ function RankingScreen({ currentUser, token }) {
       {histoUser && <HistoriqueModal userId={histoUser.id} token={token} onClose={()=>setHistoUser(null)}/>}
       <div className="tabs-sub">
         <button className={`tab-sub ${subTab==="classement"?"active":""}`} onClick={()=>setSubTab("classement")}>Classement</button>
+        <button className={`tab-sub ${subTab==="evolution"?"active":""}`} onClick={()=>setSubTab("evolution")}>Évolution</button>
         <button className={`tab-sub ${subTab==="distinctions"?"active":""}`} onClick={()=>setSubTab("distinctions")}>Distinctions</button>
       </div>
+
       {subTab==="classement" && (
         <>
           <div className="section-title">Podium</div>
           {top3.length >= 2 ? (
             <div className="podium">
               {podium.map(p=>p&&(
-                <div key={p.id} className={`podium-card rank-${p.rang}`} onClick={()=>setHistoUser(p)} style={{cursor:"pointer"}}>
+                <div key={p.id} className={`podium-card rank-${p.rang}`} onClick={()=>setHistoUser(p)}>
                   {p.rang===1&&<div className="crown">🏆</div>}
                   <div className="podium-rank">#{p.rang}</div>
                   <div className="podium-name">{p.username}</div>
@@ -938,6 +1030,14 @@ function RankingScreen({ currentUser, token }) {
           )}
         </>
       )}
+
+      {subTab==="evolution" && (
+        <>
+          <div className="section-title">Évolution du classement</div>
+          <EvolutionChart data={evolution}/>
+        </>
+      )}
+
       {subTab==="distinctions" && <DistinctionsScreen token={token}/>}
     </div>
   );

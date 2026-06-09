@@ -36,9 +36,11 @@ router.get('/admin/users', isAdmin, (req, res) => {
   const users = db.prepare(`
     SELECT u.id, u.username, u.role, u.created_at,
            COUNT(DISTINCT p.id) AS pronos_count,
-           COALESCE(SUM(p.points_earned), 0) AS total_points
+           COALESCE(SUM(p.points_earned), 0) AS total_points,
+           COALESCE(b.points_bonus, 0) AS points_bonus
     FROM users u
     LEFT JOIN predictions p ON p.user_id = u.id
+    LEFT JOIN bonus b ON b.user_id = u.id
     GROUP BY u.id ORDER BY u.created_at DESC
   `).all();
   res.json({ users });
@@ -56,6 +58,26 @@ router.delete('/admin/users/:id', isAdmin, (req, res) => {
   res.json({ message: `Utilisateur ${user.username} supprimé.` });
 });
 
+// ── PATCH /api/admin/users/:id/bonus ─────────────────────────────────────────
+router.patch('/admin/users/:id/bonus', isAdmin, (req, res) => {
+  const { id } = req.params;
+  const { points_bonus } = req.body;
+  if (points_bonus === undefined || isNaN(+points_bonus))
+    return res.status(400).json({ error: 'points_bonus invalide.' });
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable.' });
+
+  const existing = db.prepare('SELECT * FROM bonus WHERE user_id = ?').get(id);
+  if (existing) {
+    db.prepare('UPDATE bonus SET points_bonus = ? WHERE user_id = ?').run(+points_bonus, id);
+  } else {
+    db.prepare('INSERT INTO bonus (user_id, points_bonus) VALUES (?, ?)').run(id, +points_bonus);
+  }
+
+  res.json({ message: `Points bonus de ${user.username} mis à jour : ${points_bonus} pts` });
+});
+
 // ── GET /api/admin/matches ────────────────────────────────────────────────────
 router.get('/admin/matches', isAdmin, (req, res) => {
   const matches = db.prepare('SELECT * FROM matches ORDER BY kickoff ASC').all();
@@ -70,9 +92,9 @@ function calcPoints(pred_home, pred_away, score_home, score_away) {
     (pred_home < pred_away && score_home < score_away) ||
     (pred_home === pred_away && score_home === score_away);
   const correctDiff = correctResult && (pred_home - pred_away) === (score_home - score_away);
-  if (exactScore)         return 6;
-  if (correctDiff)        return 4;
-  if (correctResult)      return 2;
+  if (exactScore)   return 6;
+  if (correctDiff)  return 4;
+  if (correctResult) return 2;
   return 0;
 }
 

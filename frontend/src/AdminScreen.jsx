@@ -63,6 +63,12 @@ const ADMIN_CSS = `
   .btn-delete { background:none; border:1px solid rgba(192,57,43,0.25); border-radius:var(--radius); color:#c07060; font-size:0.65rem; font-family:var(--font-body); letter-spacing:0.08em; padding:4px 10px; cursor:pointer; transition:all var(--transition); }
   .btn-delete:hover { background:rgba(192,57,43,0.1); border-color:rgba(192,57,43,0.5); }
   .btn-delete:disabled { opacity:0.3; cursor:not-allowed; }
+  .bonus-edit-cell { display:flex; align-items:center; gap:6px; }
+  .bonus-edit-input { width:52px; height:28px; background:var(--muted); border:1px solid rgba(201,168,76,0.15); border-radius:var(--radius); color:var(--cream); font-family:var(--font-display); font-size:1rem; text-align:center; outline:none; transition:border-color var(--transition); }
+  .bonus-edit-input:focus { border-color:var(--gold); }
+  .btn-bonus-save { background:none; border:1px solid rgba(201,168,76,0.3); border-radius:var(--radius); color:var(--gold); font-size:0.62rem; font-family:var(--font-body); letter-spacing:0.08em; padding:4px 10px; cursor:pointer; transition:all var(--transition); white-space:nowrap; }
+  .btn-bonus-save:hover { background:var(--gold); color:var(--obsidian); }
+  .btn-bonus-save:disabled { opacity:0.3; cursor:not-allowed; }
   .match-filter-row { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
   .filter-btn { padding:6px 14px; background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:2px; cursor:pointer; font-family:var(--font-body); font-size:0.68rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); transition:all var(--transition); }
   .filter-btn.active { background:rgba(201,168,76,0.1); border-color:rgba(201,168,76,0.3); color:var(--gold); }
@@ -252,11 +258,13 @@ function DashboardTab({ token }) {
 }
 
 function UsersTab({ token }) {
-  const [users, setUsers]       = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [confirm, setConfirm]   = useState(null);
-  const [deleting, setDeleting] = useState(null);
-  const [toast, setToast]       = useState(null);
+  const [users, setUsers]           = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [confirm, setConfirm]       = useState(null);
+  const [deleting, setDeleting]     = useState(null);
+  const [bonusEdits, setBonusEdits] = useState({});
+  const [savingBonus, setSavingBonus] = useState(null);
+  const [toast, setToast]           = useState(null);
 
   async function load() {
     setLoading(true);
@@ -277,14 +285,21 @@ function UsersTab({ token }) {
     finally { setDeleting(null); }
   }
 
+  async function handleSaveBonus(user) {
+    const pts = bonusEdits[user.id] ?? user.points_bonus;
+    setSavingBonus(user.id);
+    try {
+      const d = await apiCall(`/admin/users/${user.id}/bonus`, { method:"PATCH", body:JSON.stringify({ points_bonus: +pts }) }, token);
+      setToast({ msg:d.message, type:"ok" });
+      setUsers(us => us.map(u => u.id===user.id ? {...u, points_bonus:+pts} : u));
+    } catch(e) { setToast({ msg:e.message, type:"err" }); }
+    finally { setSavingBonus(null); }
+  }
+
   function exportCSV() {
-    const header = ["ID","Utilisateur","Rôle","Pronos","Points","Inscrit le"];
+    const header = ["ID","Utilisateur","Rôle","Pronos","Points matchs","Points bonus","Inscrit le"];
     const rows = users.map(u => [
-      u.id,
-      u.username,
-      u.role,
-      u.pronos_count,
-      u.total_points,
+      u.id, u.username, u.role, u.pronos_count, u.total_points, u.points_bonus,
       u.created_at ? new Date(u.created_at).toLocaleDateString("fr-FR") : "—"
     ]);
     const csv = [header, ...rows].map(r => r.join(";")).join("\n");
@@ -315,7 +330,7 @@ function UsersTab({ token }) {
         <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
-              <tr><th>#</th><th>Utilisateur</th><th>Rôle</th><th>Pronos</th><th>Points</th><th>Inscrit le</th><th></th></tr>
+              <tr><th>#</th><th>Utilisateur</th><th>Rôle</th><th>Pronos</th><th>Pts matchs</th><th>Pts bonus</th><th>Inscrit le</th><th></th></tr>
             </thead>
             <tbody>
               {users.map(u => (
@@ -325,6 +340,21 @@ function UsersTab({ token }) {
                   <td><span className={`role-pill ${u.role==="admin"?"role-admin":"role-user"}`}>{u.role}</span></td>
                   <td style={{color:"var(--gray)"}}>{u.pronos_count}</td>
                   <td style={{fontFamily:"var(--font-display)",fontSize:"1rem",color:"var(--gold)"}}>{u.total_points}</td>
+                  <td>
+                    {u.role !== "admin" ? (
+                      <div className="bonus-edit-cell">
+                        <input
+                          className="bonus-edit-input"
+                          type="number" min="0" max="100"
+                          value={bonusEdits[u.id] ?? u.points_bonus}
+                          onChange={e => setBonusEdits(b => ({...b, [u.id]: e.target.value}))}
+                        />
+                        <button className="btn-bonus-save" disabled={savingBonus===u.id} onClick={()=>handleSaveBonus(u)}>
+                          {savingBonus===u.id ? "…" : "✓"}
+                        </button>
+                      </div>
+                    ) : <span style={{color:"var(--gray)"}}>—</span>}
+                  </td>
                   <td style={{color:"var(--gray)",fontSize:"0.72rem"}}>{u.created_at ? new Date(u.created_at).toLocaleDateString("fr-FR") : "—"}</td>
                   <td>
                     {u.role !== "admin" && (

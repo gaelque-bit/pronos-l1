@@ -894,8 +894,8 @@ function BonusScreen({ token }) {
 }
 
 export default function App() {
-  const [user,setUser]             = useState(null);
-  const [token,setToken]           = useState(null);
+  const [user,setUser]             = useState(()=>{ try { return JSON.parse(localStorage.getItem('pronos_user')); } catch(e) { return null; } });
+  const [token,setToken]           = useState(()=>localStorage.getItem('pronos_token')||null);
   const [tab,setTab]               = useState("resultats");
   const [matches,setMatches]       = useState([]);
   const [loading,setLoading]       = useState(true);
@@ -904,8 +904,16 @@ export default function App() {
 
   useEffect(()=>{ if (!user) return; apiCall("/matches").then(d=>setMatches(d.matches||[])).catch(console.error).finally(()=>setLoading(false)); },[user]);
 
-  function handleLogin(u,t){ setUser(u); setToken(t); }
-  function handleLogout(){ setUser(null); setToken(null); setMatches([]); setLoading(true); setShowAdmin(false); }
+  function handleLogin(u,t){
+    setUser(u); setToken(t);
+    localStorage.setItem('pronos_user', JSON.stringify(u));
+    localStorage.setItem('pronos_token', t);
+  }
+  function handleLogout(){
+    setUser(null); setToken(null); setMatches([]); setLoading(true); setShowAdmin(false);
+    localStorage.removeItem('pronos_user');
+    localStorage.removeItem('pronos_token');
+  }
 
   return (
     <>

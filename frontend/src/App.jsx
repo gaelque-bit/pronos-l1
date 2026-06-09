@@ -413,11 +413,6 @@ const DEFAULT_DISTINCTIONS = [
 
 // ── Graphique évolution ───────────────────────────────────────────────────────
 function EvolutionChart({ data }) {
-  const canvasRef = useEffect(() => {}, []);
-  const ref = useRef ? useRef(null) : { current: null };
-
-  const { useState: useS, useEffect: useE, useRef: useR } = { useState, useEffect, useRef: (v) => { const r = { current: v }; return r; } };
-
   if (!data || data.days.length === 0) return (
     <div className="empty" style={{padding:"24px 0"}}>
       <div className="empty-icon">📈</div>
@@ -440,7 +435,6 @@ function EvolutionChart({ data }) {
     <div className="evolution-wrap">
       <div className="evolution-canvas-wrap">
         <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{display:"block"}}>
-          {/* Grille */}
           {[0,0.25,0.5,0.75,1].map(t => {
             const y = PAD.top + chartH * (1-t);
             return (
@@ -450,22 +444,18 @@ function EvolutionChart({ data }) {
               </g>
             );
           })}
-
-          {/* Labels journées */}
           {days.map((d,i) => (
             <text key={d} x={xPos(i)} y={H-6} textAnchor="middle" fontSize="9" fill="#6b6358">J{d}</text>
           ))}
-
-          {/* Lignes */}
           {data.series.map((s,si) => {
             const color = CHART_COLORS[si % CHART_COLORS.length];
-            const pts = [0, ...s.points];
-            const xs  = [-1, ...days.map((_,i)=>i)];
-            const path = xs.map((xi,i) => `${i===0?'M':'L'}${i===0?PAD.left:xPos(xi)} ${i===0?yPos(0):yPos(pts[i])}`).join(' ');
+            const points = s.points;
+            if (points.length === 0) return null;
+            const d = points.map((v,i) => `${i===0?'M':'L'}${xPos(i)} ${yPos(v)}`).join(' ');
             return (
               <g key={s.id}>
-                <path d={path} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
-                {s.points.map((v,i) => (
+                <path d={d} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+                {points.map((v,i) => (
                   <circle key={i} cx={xPos(i)} cy={yPos(v)} r="3" fill={color}/>
                 ))}
               </g>

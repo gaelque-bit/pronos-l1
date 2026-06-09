@@ -185,14 +185,15 @@ const CSS = `
   .podium-card.rank-1 .podium-pts { font-size:1.8rem; }
   .crown { font-size:1.1rem; margin-bottom:4px; }
   .rank-list { display:flex; flex-direction:column; gap:6px; }
-  .rank-row { display:grid; grid-template-columns:44px 1fr auto; align-items:center; gap:14px; background:var(--coal); border:1px solid rgba(201,168,76,0.08); border-radius:var(--radius); padding:12px 16px; transition:border-color var(--transition); }
-  .rank-row:hover { border-color:rgba(201,168,76,0.2); }
+  .rank-row { display:grid; grid-template-columns:44px 1fr auto; align-items:center; gap:14px; background:var(--coal); border:1px solid rgba(201,168,76,0.08); border-radius:var(--radius); padding:12px 16px; transition:border-color var(--transition); cursor:pointer; }
+  .rank-row:hover { border-color:rgba(201,168,76,0.3); background:rgba(201,168,76,0.04); }
   .rank-row.me { border-color:rgba(201,168,76,0.3); background:rgba(201,168,76,0.05); }
   .rank-num { font-family:var(--font-display); font-size:1.2rem; font-weight:400; font-style:italic; color:var(--gold-dim); text-align:center; }
   .rank-username { font-size:0.82rem; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; }
   .rank-detail { font-size:0.7rem; color:var(--gray); margin-top:2px; }
   .rank-total { font-family:var(--font-display); font-size:1.4rem; font-weight:600; color:var(--gold); text-align:right; }
   .rank-total span { font-family:var(--font-body); font-size:0.65rem; color:var(--gray); margin-left:2px; }
+  .rank-hint { font-size:0.62rem; color:var(--gray); text-align:center; margin-bottom:12px; letter-spacing:0.06em; }
   .distinctions-grid { display:flex; flex-direction:column; gap:8px; }
   .distinction-card { background:var(--coal); border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); padding:14px 18px; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px; transition:border-color var(--transition); }
   .distinction-card:hover { border-color:rgba(201,168,76,0.22); }
@@ -281,7 +282,24 @@ const CSS = `
   .regles-bonus-pts { font-family:var(--font-display); font-size:1.3rem; font-weight:600; color:var(--gold); flex-shrink:0; }
   .regles-bonus-pts small { font-family:var(--font-body); font-size:0.6rem; color:var(--gray); display:block; text-align:right; }
 
-  /* ── Mobile ─────────────────────────────────────────────────────────────── */
+  /* Historique pronostics */
+  .histo-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:20px; }
+  .histo-stat { background:var(--charcoal); border:1px solid rgba(201,168,76,0.08); border-radius:var(--radius); padding:10px 12px; text-align:center; }
+  .histo-stat-val { font-family:var(--font-display); font-size:1.4rem; font-weight:600; color:var(--gold); }
+  .histo-stat-label { font-size:0.58rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px; }
+  .histo-list { display:flex; flex-direction:column; gap:6px; }
+  .histo-row { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; background:var(--charcoal); border:1px solid rgba(201,168,76,0.06); border-radius:var(--radius); padding:10px 14px; }
+  .histo-match { font-size:0.78rem; font-weight:600; color:var(--cream); }
+  .histo-score { font-size:0.7rem; color:var(--gray); margin-top:2px; }
+  .histo-prono { font-family:var(--font-display); font-size:0.95rem; color:var(--gray); }
+  .histo-pts { font-family:var(--font-display); font-size:1.1rem; font-weight:600; }
+  .histo-pts.p6 { color:var(--gold-light); }
+  .histo-pts.p4 { color:var(--gold); }
+  .histo-pts.p2 { color:var(--gold-dim); }
+  .histo-pts.p0 { color:var(--gray); }
+  .histo-pts.pending { color:var(--gray); font-family:var(--font-body); font-size:0.65rem; }
+
+  /* Mobile */
   @media (max-width: 600px) {
     .app { padding:0 12px 60px; }
     .header { padding:16px 0 14px; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
@@ -331,6 +349,7 @@ const CSS = `
     .bonus-choices { padding:10px 14px 14px; }
     .bonus-choice { padding:8px 10px; }
     .auth-hero h1 { font-size:clamp(2.2rem,8vw,4rem); }
+    .histo-stats { grid-template-columns:repeat(2,1fr); }
   }
 `;
 
@@ -382,6 +401,7 @@ const DEFAULT_DISTINCTIONS = [
   { emoji:"🇫🇷", label:"Meilleur pronostic France", username:null, detail:"—" },
 ];
 
+// ── Modal Règles ──────────────────────────────────────────────────────────────
 function ReglesModal({ onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -439,6 +459,80 @@ function ReglesModal({ onClose }) {
               ))}
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Modal Historique ──────────────────────────────────────────────────────────
+function HistoriqueModal({ userId, token, onClose }) {
+  const [data, setData]       = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiCall(`/predictions/user/${userId}`, {}, token)
+      .then(d => setData(d))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [userId]);
+
+  const finished = data?.predictions?.filter(p => p.status === "finished") || [];
+  const totalPts = finished.reduce((s,p) => s + (p.points_earned||0), 0);
+  const exacts   = finished.filter(p => p.points_earned === 6).length;
+  const joues    = finished.length;
+  const bonusPts = data?.bonus?.points_bonus || 0;
+
+  function ptsCls(pts) {
+    if (pts===6) return "histo-pts p6";
+    if (pts===4) return "histo-pts p4";
+    if (pts===2) return "histo-pts p2";
+    return "histo-pts p0";
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">{data?.user?.username || "…"}</div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          {loading ? <div className="spinner"/> : (
+            <>
+              <div className="histo-stats">
+                <div className="histo-stat"><div className="histo-stat-val">{totalPts + bonusPts}</div><div className="histo-stat-label">Total pts</div></div>
+                <div className="histo-stat"><div className="histo-stat-val">{joues}</div><div className="histo-stat-label">Matchs joués</div></div>
+                <div className="histo-stat"><div className="histo-stat-val">{exacts}</div><div className="histo-stat-label">Exacts</div></div>
+                <div className="histo-stat"><div className="histo-stat-val">{bonusPts}</div><div className="histo-stat-label">Bonus</div></div>
+              </div>
+              {data?.predictions?.length === 0 ? (
+                <div className="empty"><div className="empty-icon">📋</div>Aucun pronostic enregistré.</div>
+              ) : (
+                <div className="histo-list">
+                  {data.predictions.map(p => (
+                    <div className="histo-row" key={p.id}>
+                      <div>
+                        <div className="histo-match">
+                          {flag(p.home_team)} {teamName(p.home_team)} — {teamName(p.away_team)} {flag(p.away_team)}
+                        </div>
+                        <div className="histo-score">
+                          {p.status==="finished"
+                            ? `Score : ${p.score_home}–${p.score_away} · Prono : ${p.pred_home}–${p.pred_away}`
+                            : `Prono : ${p.pred_home}–${p.pred_away} · ${formatDateShort(p.kickoff)}`}
+                        </div>
+                      </div>
+                      <div>
+                        {p.status==="finished"
+                          ? <span className={ptsCls(p.points_earned)}>{p.points_earned} pt{p.points_earned>1?"s":""}</span>
+                          : <span className="histo-pts pending">À venir</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -769,12 +863,17 @@ function RankingScreen({ currentUser, token }) {
   const [ranking,setRanking]=useState([]);
   const [loading,setLoading]=useState(true);
   const [subTab,setSubTab]=useState("classement");
+  const [histoUser,setHistoUser]=useState(null);
+
   useEffect(()=>{ apiCall("/ranking").then(d=>setRanking(d.classement||[])).catch(console.error).finally(()=>setLoading(false)); },[]);
+
   const top3=ranking.filter(r=>r.rang<=3).slice(0,3);
   const podium=[top3[1],top3[0],top3[2]].filter(Boolean);
   if (loading) return <div className="spinner"/>;
+
   return (
     <div>
+      {histoUser && <HistoriqueModal userId={histoUser.id} token={token} onClose={()=>setHistoUser(null)}/>}
       <div className="tabs-sub">
         <button className={`tab-sub ${subTab==="classement"?"active":""}`} onClick={()=>setSubTab("classement")}>Classement</button>
         <button className={`tab-sub ${subTab==="distinctions"?"active":""}`} onClick={()=>setSubTab("distinctions")}>Distinctions</button>
@@ -785,7 +884,7 @@ function RankingScreen({ currentUser, token }) {
           {top3.length >= 2 ? (
             <div className="podium">
               {podium.map(p=>p&&(
-                <div key={p.id} className={`podium-card rank-${p.rang}`}>
+                <div key={p.id} className={`podium-card rank-${p.rang}`} onClick={()=>setHistoUser(p)} style={{cursor:"pointer"}}>
                   {p.rang===1&&<div className="crown">🏆</div>}
                   <div className="podium-rank">#{p.rang}</div>
                   <div className="podium-name">{p.username}</div>
@@ -812,18 +911,21 @@ function RankingScreen({ currentUser, token }) {
               Les points seront attribués dès le premier match terminé
             </div>
           ) : (
-            <div className="rank-list">
-              {ranking.map(row=>(
-                <div key={row.id} className={`rank-row ${row.id===currentUser?.id?"me":""}`}>
-                  <div className="rank-num">{row.rang}</div>
-                  <div>
-                    <div className="rank-username">{row.username}{row.id===currentUser?.id&&<span style={{fontSize:"0.68rem",color:"var(--gold)",marginLeft:8}}>← toi</span>}</div>
-                    <div className="rank-detail">{row.pronos_joues} matchs · {row.scores_exacts} exacts{row.points_bonus>0?` · +${row.points_bonus} bonus`:""}</div>
+            <>
+              <div className="rank-hint">Clique sur un joueur pour voir ses pronostics</div>
+              <div className="rank-list">
+                {ranking.map(row=>(
+                  <div key={row.id} className={`rank-row ${row.id===currentUser?.id?"me":""}`} onClick={()=>setHistoUser(row)}>
+                    <div className="rank-num">{row.rang}</div>
+                    <div>
+                      <div className="rank-username">{row.username}{row.id===currentUser?.id&&<span style={{fontSize:"0.68rem",color:"var(--gold)",marginLeft:8}}>← toi</span>}</div>
+                      <div className="rank-detail">{row.pronos_joues} matchs · {row.scores_exacts} exacts{row.points_bonus>0?` · +${row.points_bonus} bonus`:""}</div>
+                    </div>
+                    <div className="rank-total">{row.total}<span>pts</span></div>
                   </div>
-                  <div className="rank-total">{row.total}<span>pts</span></div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </>
       )}

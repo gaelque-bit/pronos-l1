@@ -15,7 +15,7 @@ router.post('/bonus', (req, res) => {
     return res.status(400).json({ error: 'questionId et answerId sont obligatoires.' });
 
   const now = new Date();
-  const lockDate = new Date('2026-06-11T18:00:00Z');
+  const lockDate = new Date('2026-06-12T22:00:00Z');
   if (now >= lockDate)
     return res.status(403).json({ error: 'Les bonus sont fermés.' });
 

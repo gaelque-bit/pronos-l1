@@ -74,7 +74,6 @@ router.patch('/admin/users/:id/bonus', isAdmin, (req, res) => {
   } else {
     db.prepare('INSERT INTO bonus (user_id, points_bonus) VALUES (?, ?)').run(id, +points_bonus);
   }
-
   res.json({ message: `Points bonus de ${user.username} mis à jour : ${points_bonus} pts` });
 });
 
@@ -86,14 +85,14 @@ router.get('/admin/matches', isAdmin, (req, res) => {
 
 // ── Fonction calcul points (barème 6/4/2/0) ───────────────────────────────────
 function calcPoints(pred_home, pred_away, score_home, score_away) {
-  const exactScore = pred_home === score_home && pred_away === score_away;
+  const exactScore    = pred_home === score_home && pred_away === score_away;
   const correctResult =
     (pred_home > pred_away && score_home > score_away) ||
     (pred_home < pred_away && score_home < score_away) ||
     (pred_home === pred_away && score_home === score_away);
   const correctDiff = correctResult && (pred_home - pred_away) === (score_home - score_away);
-  if (exactScore)   return 6;
-  if (correctDiff)  return 4;
+  if (exactScore)    return 6;
+  if (correctDiff)   return 4;
   if (correctResult) return 2;
   return 0;
 }
@@ -167,6 +166,42 @@ router.get('/admin/stats', isAdmin, (req, res) => {
       matchMoins:   matchMoins ? `${matchMoins.home_team} — ${matchMoins.away_team} (${matchMoins.nb} pronos)` : '—',
       meilleurScore: meilleurScore ? `${meilleurScore.username} · ${meilleurScore.total} pts` : '—',
     });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── GET /api/admin/export-predictions ────────────────────────────────────────
+router.get('/admin/export-predictions', isAdmin, (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        u.username,
+        m.home_team, m.away_team, m.kickoff, m.status,
+        m.score_home, m.score_away,
+        p.pred_home, p.pred_away, p.points_earned,
+        p.submitted_at
+      FROM predictions p
+      JOIN users u ON u.id = p.user_id
+      JOIN matches m ON m.id = p.match_id
+      ORDER BY u.username ASC, m.kickoff ASC
+    `).all();
+
+    const header = ['Joueur','Domicile','Extérieur','Date','Statut','Score Dom','Score Ext','Prono Dom','Prono Ext','Points','Soumis le'];
+    const csv = [header, ...rows.map(r => [
+      r.username,
+      r.home_team, r.away_team,
+      new Date(r.kickoff).toLocaleDateString('fr-FR'),
+      r.status,
+      r.score_home ?? '—', r.score_away ?? '—',
+      r.pred_home, r.pred_away,
+      r.points_earned,
+      r.submitted_at
+    ])].map(r => r.join(';')).join('\n');
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename=pronos-${new Date().toISOString().slice(0,10)}.csv`);
+    res.send('\uFEFF' + csv);
   } catch(e) {
     res.status(500).json({ error: e.message });
   }

@@ -84,7 +84,7 @@ const ADMIN_CSS = `
   .btn-save-score:hover { background:var(--gold); color:var(--obsidian); }
   .btn-save-score:disabled { opacity:0.3; cursor:not-allowed; }
   .current-score { font-family:var(--font-display); font-size:1.1rem; color:var(--gold-dim); min-width:50px; text-align:center; }
-  .sync-panel { background:var(--coal); border:1px solid rgba(201,168,76,0.12); border-radius:var(--radius); padding:28px; }
+  .sync-panel { background:var(--coal); border:1px solid rgba(201,168,76,0.12); border-radius:var(--radius); padding:28px; margin-bottom:16px; }
   .sync-panel h3 { font-family:var(--font-display); font-size:1.2rem; font-weight:400; font-style:italic; color:var(--cream); margin-bottom:10px; }
   .sync-panel p { font-size:0.78rem; color:var(--gray); line-height:1.7; margin-bottom:20px; }
   .btn-sync { padding:13px 28px; background:var(--gold); color:var(--obsidian); border:none; border-radius:var(--radius); font-family:var(--font-body); font-size:0.75rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:all var(--transition); }
@@ -119,7 +119,9 @@ const ADMIN_CSS = `
   .dashboard-info-val { font-size:0.85rem; color:var(--cream); font-weight:600; }
   .dashboard-progress { width:100%; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; margin-top:8px; overflow:hidden; }
   .dashboard-progress-bar { height:100%; background:var(--gold); border-radius:3px; transition:width 0.6s ease; }
-  .csv-row { display:flex; justify-content:flex-end; margin-bottom:16px; }
+  .csv-row { display:flex; justify-content:flex-end; gap:10px; margin-bottom:16px; }
+  .btn-export { padding:7px 16px; background:transparent; color:var(--gold); border:1px solid rgba(201,168,76,0.35); border-radius:var(--radius); font-family:var(--font-body); font-size:0.65rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:all var(--transition); white-space:nowrap; }
+  .btn-export:hover { background:var(--gold); color:var(--obsidian); }
 `;
 
 function formatDate(iso) {
@@ -177,17 +179,9 @@ function AdminLogin({ onLogin }) {
       <div className="card" style={{maxWidth:360}}>
         <h2>Connexion admin</h2>
         {error && <div className="error-msg">{error}</div>}
-        <div className="field">
-          <label>Nom d'utilisateur</label>
-          <input value={username} onChange={e=>setUsername(e.target.value)} placeholder="Admin" onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/>
-        </div>
-        <div className="field">
-          <label>Mot de passe</label>
-          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/>
-        </div>
-        <button className="btn" onClick={handleSubmit} disabled={loading}>
-          {loading ? "Vérification…" : "Accéder au panneau"}
-        </button>
+        <div className="field"><label>Nom d'utilisateur</label><input value={username} onChange={e=>setUsername(e.target.value)} placeholder="Admin" onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/></div>
+        <div className="field"><label>Mot de passe</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/></div>
+        <button className="btn" onClick={handleSubmit} disabled={loading}>{loading ? "Vérification…" : "Accéder au panneau"}</button>
       </div>
     </div>
   );
@@ -198,10 +192,7 @@ function DashboardTab({ token }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiCall("/admin/stats", {}, token)
-      .then(d => setStats(d))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    apiCall("/admin/stats", {}, token).then(d => setStats(d)).catch(console.error).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="spinner"/>;
@@ -210,48 +201,21 @@ function DashboardTab({ token }) {
   return (
     <div>
       <div className="dashboard-grid">
-        <div className="dashboard-stat">
-          <div className="dashboard-stat-val">{stats.totalUsers}</div>
-          <div className="dashboard-stat-label">Participants</div>
-          <div className="dashboard-stat-sub">{stats.usersActifs} actifs</div>
-        </div>
-        <div className="dashboard-stat">
-          <div className="dashboard-stat-val">{stats.totalPredictions}</div>
-          <div className="dashboard-stat-label">Pronostics</div>
-          <div className="dashboard-stat-sub">sur {stats.totalMatches} matchs</div>
-        </div>
+        <div className="dashboard-stat"><div className="dashboard-stat-val">{stats.totalUsers}</div><div className="dashboard-stat-label">Participants</div><div className="dashboard-stat-sub">{stats.usersActifs} actifs</div></div>
+        <div className="dashboard-stat"><div className="dashboard-stat-val">{stats.totalPredictions}</div><div className="dashboard-stat-label">Pronostics</div><div className="dashboard-stat-sub">sur {stats.totalMatches} matchs</div></div>
         <div className="dashboard-stat">
           <div className="dashboard-stat-val">{stats.tauxParticipation}%</div>
           <div className="dashboard-stat-label">Participation</div>
-          <div className="dashboard-progress">
-            <div className="dashboard-progress-bar" style={{width:`${stats.tauxParticipation}%`}}/>
-          </div>
+          <div className="dashboard-progress"><div className="dashboard-progress-bar" style={{width:`${stats.tauxParticipation}%`}}/></div>
         </div>
-        <div className="dashboard-stat">
-          <div className="dashboard-stat-val">{stats.scoresExacts}</div>
-          <div className="dashboard-stat-label">Scores exacts</div>
-          <div className="dashboard-stat-sub">6 pts chacun</div>
-        </div>
-        <div className="dashboard-stat">
-          <div className="dashboard-stat-val">{stats.pointsBonus}</div>
-          <div className="dashboard-stat-label">Points bonus</div>
-          <div className="dashboard-stat-sub">attribués</div>
-        </div>
+        <div className="dashboard-stat"><div className="dashboard-stat-val">{stats.scoresExacts}</div><div className="dashboard-stat-label">Scores exacts</div><div className="dashboard-stat-sub">6 pts chacun</div></div>
+        <div className="dashboard-stat"><div className="dashboard-stat-val">{stats.pointsBonus}</div><div className="dashboard-stat-label">Points bonus</div><div className="dashboard-stat-sub">attribués</div></div>
       </div>
       <div className="dashboard-section-title">Détails</div>
       <div className="dashboard-info">
-        <div className="dashboard-info-row">
-          <div className="dashboard-info-label">🥇 Meilleur score</div>
-          <div className="dashboard-info-val">{stats.meilleurScore}</div>
-        </div>
-        <div className="dashboard-info-row">
-          <div className="dashboard-info-label">🔥 Match le plus pronostiqué</div>
-          <div className="dashboard-info-val">{translateMatchStr(stats.matchPlus)}</div>
-        </div>
-        <div className="dashboard-info-row">
-          <div className="dashboard-info-label">❄️ Match le moins pronostiqué</div>
-          <div className="dashboard-info-val">{translateMatchStr(stats.matchMoins)}</div>
-        </div>
+        <div className="dashboard-info-row"><div className="dashboard-info-label">🥇 Meilleur score</div><div className="dashboard-info-val">{stats.meilleurScore}</div></div>
+        <div className="dashboard-info-row"><div className="dashboard-info-label">🔥 Match le plus pronostiqué</div><div className="dashboard-info-val">{translateMatchStr(stats.matchPlus)}</div></div>
+        <div className="dashboard-info-row"><div className="dashboard-info-label">❄️ Match le moins pronostiqué</div><div className="dashboard-info-val">{translateMatchStr(stats.matchMoins)}</div></div>
       </div>
     </div>
   );
@@ -306,10 +270,18 @@ function UsersTab({ token }) {
     const blob = new Blob(["\uFEFF" + csv], { type:"text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `pronos-participants-${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
+    a.href = url; a.download = `pronos-participants-${new Date().toISOString().slice(0,10)}.csv`; a.click();
     URL.revokeObjectURL(url);
+  }
+
+  async function exportPredictions() {
+    const url = `${API_BASE}/admin/export-predictions`;
+    const res = await fetch(url, { headers: { "Authorization": `Bearer ${token}` } });
+    const blob = await res.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `pronos-pronostics-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
   }
 
   const totalPronos = users.reduce((s,u) => s + u.pronos_count, 0);
@@ -324,7 +296,8 @@ function UsersTab({ token }) {
         <div className="admin-stat"><div className="admin-stat-val">{totalPronos}</div><div className="admin-stat-label">Pronostics total</div></div>
       </div>
       <div className="csv-row">
-        <button className="btn-save-score" onClick={exportCSV}>⬇ Exporter CSV</button>
+        <button className="btn-export" onClick={exportPredictions}>⬇ Export pronostics</button>
+        <button className="btn-save-score" onClick={exportCSV}>⬇ Export participants</button>
       </div>
       {loading ? <div className="spinner"/> : (
         <div className="admin-table-wrap">
@@ -343,12 +316,9 @@ function UsersTab({ token }) {
                   <td>
                     {u.role !== "admin" ? (
                       <div className="bonus-edit-cell">
-                        <input
-                          className="bonus-edit-input"
-                          type="number" min="0" max="100"
+                        <input className="bonus-edit-input" type="number" min="0" max="100"
                           value={bonusEdits[u.id] ?? u.points_bonus}
-                          onChange={e => setBonusEdits(b => ({...b, [u.id]: e.target.value}))}
-                        />
+                          onChange={e => setBonusEdits(b => ({...b, [u.id]: e.target.value}))}/>
                         <button className="btn-bonus-save" disabled={savingBonus===u.id} onClick={()=>handleSaveBonus(u)}>
                           {savingBonus===u.id ? "…" : "✓"}
                         </button>
@@ -382,10 +352,7 @@ function ScoresTab({ token }) {
   const [toast, setToast]     = useState(null);
 
   useEffect(() => {
-    apiCall("/admin/matches", {}, token)
-      .then(d => setMatches(d.matches || []))
-      .catch(e => setToast({ msg:e.message, type:"err" }))
-      .finally(() => setLoading(false));
+    apiCall("/admin/matches", {}, token).then(d => setMatches(d.matches || [])).catch(e => setToast({ msg:e.message, type:"err" })).finally(() => setLoading(false));
   }, []);
 
   function getEdit(m) { return edits[m.id] ?? { home: m.score_home ?? "", away: m.score_away ?? "" }; }
@@ -425,9 +392,7 @@ function ScoresTab({ token }) {
           <div className="match-edit-row" key={m.id}>
             <div>
               <div className="match-edit-teams">{teamName(m.home_team)} — {teamName(m.away_team)}</div>
-              <div className="match-edit-meta">
-                {stageLabel(m.stage)} · {formatDate(m.kickoff)} · <span style={{color:m.status==="finished"?"var(--gold)":m.status==="live"?"#d07060":"var(--gray)"}}>{m.status}</span>
-              </div>
+              <div className="match-edit-meta">{stageLabel(m.stage)} · {formatDate(m.kickoff)} · <span style={{color:m.status==="finished"?"var(--gold)":m.status==="live"?"#d07060":"var(--gray)"}}>{m.status}</span></div>
             </div>
             <div className="match-edit-controls">
               {m.status==="finished" && <span className="current-score">{m.score_home}–{m.score_away}</span>}
@@ -466,11 +431,7 @@ function SyncTab({ token }) {
         <button className="btn-sync" onClick={handleSync} disabled={syncing}>
           {syncing ? "Synchronisation en cours…" : "⟳ Lancer la synchronisation"}
         </button>
-        {result && (
-          <div className={`sync-result ${result.ok?"sync-ok":"sync-err"}`}>
-            {result.ok ? "✓ " : "✗ "}{result.msg}
-          </div>
-        )}
+        {result && <div className={`sync-result ${result.ok?"sync-ok":"sync-err"}`}>{result.ok ? "✓ " : "✗ "}{result.msg}</div>}
       </div>
     </div>
   );

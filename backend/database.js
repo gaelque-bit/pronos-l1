@@ -1,7 +1,7 @@
 require('dotenv').config();
 const Database = require('better-sqlite3');
 const bcrypt   = require('bcrypt');
-const db       = new Database('pronos.db');
+const db       = new Database(process.env.DATABASE_PATH || 'pronos.db');
 
 db.pragma('foreign_keys = ON');
 

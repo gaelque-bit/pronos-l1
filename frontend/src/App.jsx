@@ -1224,6 +1224,8 @@ export default function App() {
   useEffect(()=>{ if (!user) return; apiCall("/matches").then(d=>setMatches(d.matches||[])).catch(console.error).finally(()=>setLoading(false)); },[user]);
 
   function handleLogin(u,t){
+    localStorage.removeItem('pronos_user');
+    localStorage.removeItem('pronos_token');
     setUser(u); setToken(t);
     localStorage.setItem('pronos_user', JSON.stringify(u));
     localStorage.setItem('pronos_token', t);

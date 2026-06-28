@@ -390,7 +390,7 @@ function formatDateShort(iso) {
 }
 function groupLabel(g) { return g ? "Groupe " + g.replace("GROUP_","") : ""; }
 function stageLabel(s) {
-  return { GROUP_STAGE:"Phase de groupes", LAST_32:"Huitièmes de finale", ROUND_OF_16:"Huitièmes de finale", QUARTER_FINALS:"Quarts de finale", SEMI_FINALS:"Demi-finales", THIRD_PLACE:"3e place", FINAL:"Finale" }[s] || s;
+  return { GROUP_STAGE:"Phase de groupes", LAST_32:"Seizièmes de finale", ROUND_OF_16:"Huitièmes de finale", QUARTER_FINALS:"Quarts de finale", SEMI_FINALS:"Demi-finales", THIRD_PLACE:"3e place", FINAL:"Finale" }[s] || s;
 }
 function ptsClass(pts) {
   if (pts===6) return "points-badge pts-6";

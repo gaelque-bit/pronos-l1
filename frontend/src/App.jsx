@@ -49,7 +49,7 @@ const CHART_COLORS = [
   "#c9a84c","#e8c97a","#7a6130","#f2ead8","#6b6358",
   "#a78bfa","#60a5fa","#34d399","#f87171","#fb923c",
 ];
-
+const KO_STAGES = ["LAST_32","ROUND_OF_16","QUARTER_FINALS","SEMI_FINALS","THIRD_PLACE","FINAL"];
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Josefin+Sans:wght@300;400;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

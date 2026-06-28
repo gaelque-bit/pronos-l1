@@ -921,6 +921,7 @@ const knockoutMatches = matches.filter(m=>m.stage!=="GROUP_STAGE");
   },[matches]);
 
  const currentMatches = activeDay?allMatchdays.filter(m=>m.matchday===activeDay):[];
+  function handlePredicted(matchId,home,away) { setPredictions(p=>({...p,[matchId]:{pred_home:home,pred_away:away,points_earned:0}})); }
   function dayStatus(d) {
     const ms=groupMatches.filter(m=>m.matchday===d);
     if (ms.every(m=>m.status==="finished")) return "done";

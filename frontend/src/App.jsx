@@ -894,9 +894,10 @@ function PredictionsScreen({ matches, loading, token }) {
 const [activeKoStage,setActiveKoStage]=useState(null);
 const [loadingPredictions,setLoadingPredictions]=useState(true);
 
-  const groupMatches = matches.filter(m=>m.stage==="GROUP_STAGE"&&m.matchday);
-  const days = [...new Set(groupMatches.map(m=>m.matchday))].sort((a,b)=>a-b);
-  const knockoutMatches = matches.filter(m=>m.stage!=="GROUP_STAGE");
+  const allMatchdays = matches.filter(m=>m.matchday);
+const days = [...new Set(allMatchdays.map(m=>m.matchday))].sort((a,b)=>a-b);
+const groupMatches = matches.filter(m=>m.stage==="GROUP_STAGE"&&m.matchday);
+const knockoutMatches = matches.filter(m=>m.stage!=="GROUP_STAGE");
 
   useEffect(()=>{
     if (!token||matches.length===0) return;
@@ -919,7 +920,7 @@ const [loadingPredictions,setLoadingPredictions]=useState(true);
     }
   },[matches]);
 
-  function handlePredicted(matchId,home,away) { setPredictions(p=>({...p,[matchId]:{pred_home:home,pred_away:away,points_earned:0}})); }
+ const currentMatches = activeDay?allMatchdays.filter(m=>m.matchday===activeDay):[];
   function dayStatus(d) {
     const ms=groupMatches.filter(m=>m.matchday===d);
     if (ms.every(m=>m.status==="finished")) return "done";
@@ -928,7 +929,7 @@ const [loadingPredictions,setLoadingPredictions]=useState(true);
   }
 
   if (loading||loadingPredictions) return <div className="spinner"/>;
-  const currentMatches = activeDay?groupMatches.filter(m=>m.matchday===activeDay):[];
+  
 
   return (
     <div>

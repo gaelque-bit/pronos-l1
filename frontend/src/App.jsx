@@ -948,7 +948,7 @@ const [loadingPredictions,setLoadingPredictions]=useState(true);
           <div className="matchday-tabs">
             {days.map(d=>(
               <button key={d} className={`matchday-tab ${activeDay===d?"active":""} ${dayStatus(d)==="done"?"done":""}`} onClick={()=>setActiveDay(d)}>
-                {dayStatus(d)==="live"?"⚡ ":""}J{d}
+                {dayStatus(d)==="live"?"⚡ ":""}{d===4?"16èmes":d===5?"8èmes":d===6?"Quarts":d===7?"Demis":d===8?"Finale":`J${d}`}
               </button>
             ))}
           </div>

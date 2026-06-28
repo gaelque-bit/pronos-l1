@@ -891,7 +891,8 @@ function PronoCard({ match, prediction, token, onPredicted }) {
 function PredictionsScreen({ matches, loading, token }) {
   const [predictions,setPredictions]=useState({});
   const [activeDay,setActiveDay]=useState(null);
-  const [loadingPredictions,setLoadingPredictions]=useState(true);
+const [activeKoStage,setActiveKoStage]=useState(null);
+const [loadingPredictions,setLoadingPredictions]=useState(true);
 
   const groupMatches = matches.filter(m=>m.stage==="GROUP_STAGE"&&m.matchday);
   const days = [...new Set(groupMatches.map(m=>m.matchday))].sort((a,b)=>a-b);
@@ -908,6 +909,13 @@ function PredictionsScreen({ matches, loading, token }) {
     if (days.length>0&&activeDay===null) {
       const firstOpen = days.find(d=>groupMatches.filter(m=>m.matchday===d).some(m=>m.status==="scheduled"&&new Date(m.kickoff)>new Date()));
       setActiveDay(firstOpen||days[0]);
+    }
+  },[matches]);
+
+  useEffect(()=>{
+    if (knockoutMatches.length>0&&activeKoStage===null) {
+      const firstOpen = KO_STAGES.find(s=>knockoutMatches.some(m=>m.stage===s&&m.status==="scheduled"));
+      setActiveKoStage(firstOpen||"LAST_32");
     }
   },[matches]);
 
@@ -951,13 +959,18 @@ function PredictionsScreen({ matches, loading, token }) {
       )}
      {knockoutMatches.length>0 && (
   <>
-    {["LAST_32","ROUND_OF_16","QUARTER_FINALS","SEMI_FINALS","THIRD_PLACE","FINAL"].filter(s=>knockoutMatches.some(m=>m.stage===s)).map(stage=>(
-      <div key={stage}>
-        <div className="section-title" style={{marginTop:28}}>{stageLabel(stage)}</div>
-        {knockoutMatches.filter(m=>m.stage===stage).sort((a,b)=>new Date(a.kickoff)-new Date(b.kickoff)).map(m=>(
-          <PronoCard key={m.id} match={m} prediction={predictions[m.id]||null} token={token} onPredicted={handlePredicted}/>
+    <div className="section-title" style={{marginTop:28}}>Phase finale</div>
+    <div className="matchday-tabs">
+      {["LAST_32","ROUND_OF_16","QUARTER_FINALS","SEMI_FINALS","THIRD_PLACE","FINAL"]
+        .filter(s=>knockoutMatches.some(m=>m.stage===s))
+        .map(stage=>(
+          <button key={stage} className={`matchday-tab ${activeKoStage===stage?"active":""}`} onClick={()=>setActiveKoStage(stage)}>
+            {stageLabel(stage)}
+          </button>
         ))}
-      </div>
+    </div>
+    {activeKoStage && knockoutMatches.filter(m=>m.stage===activeKoStage).sort((a,b)=>new Date(a.kickoff)-new Date(b.kickoff)).map(m=>(
+      <PronoCard key={m.id} match={m} prediction={predictions[m.id]||null} token={token} onPredicted={handlePredicted}/>
     ))}
   </>
 )}

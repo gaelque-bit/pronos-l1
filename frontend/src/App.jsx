@@ -959,23 +959,7 @@ const knockoutMatches = matches.filter(m=>m.stage!=="GROUP_STAGE");
           ))}
         </>
       )}
-     {knockoutMatches.length>0 && (
-  <>
-    <div className="section-title" style={{marginTop:28}}>Phase finale</div>
-    <div className="matchday-tabs">
-      {["LAST_32","ROUND_OF_16","QUARTER_FINALS","SEMI_FINALS","THIRD_PLACE","FINAL"]
-        .filter(s=>knockoutMatches.some(m=>m.stage===s))
-        .map(stage=>(
-          <button key={stage} className={`matchday-tab ${activeKoStage===stage?"active":""}`} onClick={()=>setActiveKoStage(stage)}>
-            {stageLabel(stage)}
-          </button>
-        ))}
-    </div>
-    {activeKoStage && knockoutMatches.filter(m=>m.stage===activeKoStage).sort((a,b)=>new Date(a.kickoff)-new Date(b.kickoff)).map(m=>(
-      <PronoCard key={m.id} match={m} prediction={predictions[m.id]||null} token={token} onPredicted={handlePredicted}/>
-    ))}
-  </>
-)}
+     
       {matches.length===0&&<div className="empty"><div className="empty-icon">⚽</div>Aucun match disponible.</div>}
     </div>
   );

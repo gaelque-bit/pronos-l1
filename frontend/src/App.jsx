@@ -949,14 +949,18 @@ function PredictionsScreen({ matches, loading, token }) {
           ))}
         </>
       )}
-      {knockoutMatches.length>0 && (
-        <>
-          <div className="section-title" style={{marginTop:28}}>Phase finale</div>
-          {knockoutMatches.sort((a,b)=>new Date(a.kickoff)-new Date(b.kickoff)).map(m=>(
-            <PronoCard key={m.id} match={m} prediction={predictions[m.id]||null} token={token} onPredicted={handlePredicted}/>
-          ))}
-        </>
-      )}
+     {knockoutMatches.length>0 && (
+  <>
+    {["LAST_32","ROUND_OF_16","QUARTER_FINALS","SEMI_FINALS","THIRD_PLACE","FINAL"].filter(s=>knockoutMatches.some(m=>m.stage===s)).map(stage=>(
+      <div key={stage}>
+        <div className="section-title" style={{marginTop:28}}>{stageLabel(stage)}</div>
+        {knockoutMatches.filter(m=>m.stage===stage).sort((a,b)=>new Date(a.kickoff)-new Date(b.kickoff)).map(m=>(
+          <PronoCard key={m.id} match={m} prediction={predictions[m.id]||null} token={token} onPredicted={handlePredicted}/>
+        ))}
+      </div>
+    ))}
+  </>
+)}
       {matches.length===0&&<div className="empty"><div className="empty-icon">⚽</div>Aucun match disponible.</div>}
     </div>
   );

@@ -6,6 +6,16 @@ const API_KEY     = process.env.FOOTBALL_API_KEY;
 const COMPETITION = 'WC';
 const API_BASE    = 'https://api.football-data.org/v4';
 
+// Matchday fixe pour la phase finale (l'API renvoie null)
+const STAGE_MATCHDAY = {
+  LAST_32:        4,
+  ROUND_OF_16:    5,
+  QUARTER_FINALS: 6,
+  SEMI_FINALS:    7,
+  THIRD_PLACE:    7,
+  FINAL:          8,
+};
+
 function calcPoints(pred_home, pred_away, score_home, score_away) {
   const exactScore    = pred_home === score_home && pred_away === score_away;
   const correctResult =
@@ -66,6 +76,11 @@ async function syncMatches() {
         const score_home = match.score?.regularTime?.home ?? match.score?.fullTime?.home ?? null;
         const score_away = match.score?.regularTime?.away ?? match.score?.fullTime?.away ?? null;
 
+        // Utilise le matchday fixe pour la phase finale
+        const matchday = match.stage === 'GROUP_STAGE'
+          ? (match.matchday || null)
+          : (STAGE_MATCHDAY[match.stage] || null);
+
         upsert.run({
           api_id:     match.id,
           home_team:  match.homeTeam.shortName || match.homeTeam.name,
@@ -76,7 +91,7 @@ async function syncMatches() {
           score_away,
           stage:      match.stage,
           group_name: match.group || null,
-          matchday:   match.matchday || null,
+          matchday,
         });
 
         // Recalcul des points si match terminé avec score valide

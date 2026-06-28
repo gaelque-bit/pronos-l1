@@ -390,7 +390,7 @@ function formatDateShort(iso) {
 }
 function groupLabel(g) { return g ? "Groupe " + g.replace("GROUP_","") : ""; }
 function stageLabel(s) {
-  return { GROUP_STAGE:"Phase de groupes", ROUND_OF_16:"Huitièmes de finale", QUARTER_FINALS:"Quarts de finale", SEMI_FINALS:"Demi-finales", THIRD_PLACE:"3e place", FINAL:"Finale" }[s] || s;
+  return { GROUP_STAGE:"Phase de groupes", LAST_32:"Huitièmes de finale", ROUND_OF_16:"Huitièmes de finale", QUARTER_FINALS:"Quarts de finale", SEMI_FINALS:"Demi-finales", THIRD_PLACE:"3e place", FINAL:"Finale" }[s] || s;
 }
 function ptsClass(pts) {
   if (pts===6) return "points-badge pts-6";
@@ -750,7 +750,7 @@ function GroupsView({ matches }) {
 }
 
 function KnockoutView({ matches }) {
-  const stageOrder = ["ROUND_OF_16","QUARTER_FINALS","SEMI_FINALS","THIRD_PLACE","FINAL"];
+  const stageOrder = ["LAST_32","ROUND_OF_16","QUARTER_FINALS","SEMI_FINALS","THIRD_PLACE","FINAL"];
   const knockoutMatches = matches.filter(m=>m.stage!=="GROUP_STAGE");
   const byStage = stageOrder.filter(s=>knockoutMatches.some(m=>m.stage===s));
   if (byStage.length===0) return <div className="empty"><div className="empty-icon">🏆</div>La phase finale débutera après les matchs de groupes.</div>;

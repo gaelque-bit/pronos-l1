@@ -59,8 +59,28 @@ router.get('/predictions', (req, res) => {
   return res.json({ predictions });
 });
 
+// GET /api/predictions/match/:matchId — pronos de tous les joueurs pour un match
+router.get('/predictions/match/:matchId', (req, res) => {
+  const { matchId } = req.params;
+  const now = new Date();
+  const match = db.prepare('SELECT * FROM matches WHERE id=?').get(matchId);
+  if (!match) return res.status(404).json({ error: 'Match introuvable.' });
+
+  if (new Date(match.kickoff) > now && match.status === 'scheduled')
+    return res.status(403).json({ error: 'Match pas encore commencé.' });
+
+  const predictions = db.prepare(`
+    SELECT u.username, p.pred_home, p.pred_away, p.points_earned
+    FROM predictions p
+    JOIN users u ON u.id = p.user_id
+    WHERE p.match_id = ?
+    ORDER BY p.points_earned DESC, u.username ASC
+  `).all(matchId);
+
+  res.json({ match, predictions });
+});
+
 // GET /api/predictions/user/:userId — historique d'un participant
-// Les pronostics sont masqués si le match n'a pas encore commencé
 router.get('/predictions/user/:userId', (req, res) => {
   const { userId } = req.params;
   const viewerId = req.user?.id;

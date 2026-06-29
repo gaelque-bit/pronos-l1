@@ -640,7 +640,63 @@ function HistoriqueModal({ userId, token, onClose }) {
     </div>
   );
 }
+function MatchPronosModal({ matchId, token, onClose }) {
+  const [data, setData]       = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    apiCall(`/predictions/match/${matchId}`, {}, token)
+      .then(d => setData(d))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [matchId]);
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">
+            {data ? `${teamName(data.match.home_team)} — ${teamName(data.match.away_team)}` : "…"}
+          </div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          {loading ? <div className="spinner"/> : (
+            <>
+              {data?.match?.status === "finished" && (
+                <div style={{textAlign:"center",marginBottom:16,fontFamily:"var(--font-display)",fontSize:"1.8rem",fontWeight:600,color:"var(--gold)"}}>
+                  {data.match.score_home} — {data.match.score_away}
+                </div>
+              )}
+              {data?.predictions?.length === 0 ? (
+                <div className="empty"><div className="empty-icon">📋</div>Aucun pronostic enregistré.</div>
+              ) : (
+                <div className="histo-list">
+                  {data.predictions.map((p,i) => (
+                    <div className="histo-row" key={i}>
+                      <div>
+                        <div className="histo-match">{p.username}</div>
+                        <div className="histo-score">Prono : {p.pred_home}–{p.pred_away}</div>
+                      </div>
+                      <div>
+                        {data.match.status === "finished"
+                          ? <span className={`histo-pts ${p.points_earned===6?"p6":p.points_earned===4?"p4":p.points_earned===2?"p2":"p0"}`}>
+                              {p.points_earned} pt{p.points_earned>1?"s":""}
+                            </span>
+                          : <span className="histo-pts pending">En cours</span>
+                        }
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 function AuthScreen({ onLogin }) {
   const [mode,setMode]=useState("login");
   const [username,setUsername]=useState("");
@@ -795,6 +851,7 @@ function PronoCard({ match, prediction, token, onPredicted }) {
   const [saving,setSaving]=useState(false);
   const [msg,setMsg]=useState("");
   const [reactions,setReactions]=useState({});
+  const [showMatchPronos,setShowMatchPronos]=useState(false);
 
   useEffect(()=>{ setHome(prediction?.pred_home??""); setAway(prediction?.pred_away??""); },[prediction]);
 
@@ -871,7 +928,7 @@ function PronoCard({ match, prediction, token, onPredicted }) {
       {msg && <div style={{marginTop:8,fontSize:"0.78rem",color:msg.startsWith("✓")?"#7dcc8a":"#f08080"}}>{msg}</div>}
 
       {/* Réactions — visibles sur les matchs terminés */}
-      {match.status==="finished" && (
+{match.status==="finished" && (
         <div className="reactions-row">
           {REACTIONS.map(emoji => {
             const r = reactions[emoji] || { count:0, reacted:false };
@@ -883,6 +940,14 @@ function PronoCard({ match, prediction, token, onPredicted }) {
             );
           })}
         </div>
+      )}
+      {(match.status==="finished"||match.status==="live") && (
+        <>
+          {showMatchPronos && <MatchPronosModal matchId={match.id} token={token} onClose={()=>setShowMatchPronos(false)}/>}
+          <button onClick={()=>setShowMatchPronos(true)} style={{marginTop:8,background:"none",border:"1px solid rgba(201,168,76,0.2)",borderRadius:"var(--radius)",padding:"5px 14px",color:"var(--gray)",fontSize:"0.65rem",fontFamily:"var(--font-body)",letterSpacing:"0.1em",textTransform:"uppercase",cursor:"pointer",width:"100%",transition:"all var(--transition)"}}>
+            👁 Voir les pronostics
+          </button>
+        </>
       )}
     </div>
   );

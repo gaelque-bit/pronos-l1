@@ -71,7 +71,8 @@ async function syncMatches() {
           case 'FINISHED':                 status = 'finished';  break;
           default:                         status = 'scheduled';
         }
-        if (!match.homeTeam?.name && !match.homeTeam?.shortName) continue;
+        if ((!match.homeTeam?.name && !match.homeTeam?.shortName) || 
+    (!match.awayTeam?.name && !match.awayTeam?.shortName)) continue;
 
         const score_home = match.score?.regularTime?.home ?? match.score?.fullTime?.home ?? null;
         const score_away = match.score?.regularTime?.away ?? match.score?.fullTime?.away ?? null;

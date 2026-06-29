@@ -1,9 +1,10 @@
 const express = require('express');
 const router  = express.Router();
 const db      = require('../database');
+const authMiddleware = require('../middlewares/auth');
 
-// POST /api/predict
-router.post('/predict', (req, res) => {
+// POST /api/predict — protégé
+router.post('/predict', authMiddleware, (req, res) => {
   const userId = req.user?.id;
   if (!userId)
     return res.status(401).json({ error: 'Non connecté.' });
@@ -46,8 +47,8 @@ router.post('/predict', (req, res) => {
   }
 });
 
-// GET /api/predictions — pronostics de l'utilisateur connecté
-router.get('/predictions', (req, res) => {
+// GET /api/predictions — protégé
+router.get('/predictions', authMiddleware, (req, res) => {
   const userId = req.user?.id;
   if (!userId)
     return res.status(401).json({ error: 'Non connecté.' });
@@ -59,7 +60,7 @@ router.get('/predictions', (req, res) => {
   return res.json({ predictions });
 });
 
-// GET /api/predictions/match/:matchId — pronos de tous les joueurs pour un match
+// GET /api/predictions/match/:matchId — public
 router.get('/predictions/match/:matchId', (req, res) => {
   const { matchId } = req.params;
   const now = new Date();
@@ -80,7 +81,7 @@ router.get('/predictions/match/:matchId', (req, res) => {
   res.json({ match, predictions });
 });
 
-// GET /api/predictions/user/:userId — historique d'un participant
+// GET /api/predictions/user/:userId — public après coup d'envoi
 router.get('/predictions/user/:userId', (req, res) => {
   const { userId } = req.params;
   const viewerId = req.user?.id;

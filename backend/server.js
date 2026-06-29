@@ -1,22 +1,21 @@
 require('dotenv').config();
-
 const express = require('express');
 const path    = require('path');
 const app     = express();
-
 app.use(express.json());
 
 // ── Routes publiques ───────────────────────────────────────────────────────
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/ranking'));
-app.use('/api', require('./routes/predict'));
 
-// ── Routes admin (avant authMiddleware) ────────────────────────────────────
+// ── Routes admin ───────────────────────────────────────────────────────────
 app.use('/api', require('./routes/admin'));
 
-// ── Routes protégées (users) ───────────────────────────────────────────────
+// ── Middleware auth ────────────────────────────────────────────────────────
 const authMiddleware = require('./middlewares/auth');
-app.use('/api', authMiddleware, require('./routes/predict'));
+
+// ── Routes mixtes (publiques + protégées selon la route) ──────────────────
+app.use('/api', require('./routes/predict'));
 app.use('/api', authMiddleware, require('./routes/bonus'));
 app.use('/api', authMiddleware, require('./routes/distinctions'));
 

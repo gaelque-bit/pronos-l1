@@ -9,6 +9,7 @@ app.use(express.json());
 // ── Routes publiques ───────────────────────────────────────────────────────
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/ranking'));
+app.use('/api', require('./routes/predict'));
 
 // ── Routes admin (avant authMiddleware) ────────────────────────────────────
 app.use('/api', require('./routes/admin'));

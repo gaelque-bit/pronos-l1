@@ -9,6 +9,7 @@ const API_BASE    = 'https://api.football-data.org/v4';
 // Matchday fixe pour la phase finale (l'API renvoie null)
 const STAGE_MATCHDAY = {
   LAST_32:        4,
+  LAST_16:        5,
   ROUND_OF_16:    5,
   QUARTER_FINALS: 6,
   SEMI_FINALS:    7,

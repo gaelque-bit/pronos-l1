@@ -49,7 +49,7 @@ const CHART_COLORS = [
   "#c9a84c","#e8c97a","#7a6130","#f2ead8","#6b6358",
   "#a78bfa","#60a5fa","#34d399","#f87171","#fb923c",
 ];
-const KO_STAGES = ["LAST_32","ROUND_OF_16","QUARTER_FINALS","SEMI_FINALS","THIRD_PLACE","FINAL"];
+const KO_STAGES = ["LAST_32","LAST_16","ROUND_OF_16","QUARTER_FINALS","SEMI_FINALS","THIRD_PLACE","FINAL"];
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Josefin+Sans:wght@300;400;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -390,7 +390,7 @@ function formatDateShort(iso) {
 }
 function groupLabel(g) { return g ? "Groupe " + g.replace("GROUP_","") : ""; }
 function stageLabel(s) {
-  return { GROUP_STAGE:"Phase de groupes", LAST_32:"Seizièmes de finale", ROUND_OF_16:"Huitièmes de finale", QUARTER_FINALS:"Quarts de finale", SEMI_FINALS:"Demi-finales", THIRD_PLACE:"3e place", FINAL:"Finale" }[s] || s;
+  return { GROUP_STAGE:"Phase de groupes", LAST_32:"Seizièmes de finale", LAST_16:"Huitièmes de finale", ROUND_OF_16:"Huitièmes de finale", QUARTER_FINALS:"Quarts de finale", SEMI_FINALS:"Demi-finales", THIRD_PLACE:"3e place", FINAL:"Finale" }[s] || s;
 }
 function ptsClass(pts) {
   if (pts===6) return "points-badge pts-6";
@@ -806,7 +806,7 @@ function GroupsView({ matches }) {
 }
 
 function KnockoutView({ matches }) {
-  const stageOrder = ["LAST_32","ROUND_OF_16","QUARTER_FINALS","SEMI_FINALS","THIRD_PLACE","FINAL"];
+  const stageOrder = ["LAST_32","LAST_16","ROUND_OF_16","QUARTER_FINALS","SEMI_FINALS","THIRD_PLACE","FINAL"];
   const knockoutMatches = matches.filter(m=>m.stage!=="GROUP_STAGE");
   const byStage = stageOrder.filter(s=>knockoutMatches.some(m=>m.stage===s));
   if (byStage.length===0) return <div className="empty"><div className="empty-icon">🏆</div>La phase finale débutera après les matchs de groupes.</div>;

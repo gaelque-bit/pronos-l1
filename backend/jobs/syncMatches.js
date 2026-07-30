@@ -3,7 +3,7 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 const db    = require('../database');
 
 const API_KEY     = process.env.FOOTBALL_API_KEY;
-const COMPETITION = 'WC';
+const COMPETITION = 'FL1';
 const API_BASE    = 'https://api.football-data.org/v4';
 
 // Matchday fixe pour la phase finale (l'API renvoie null)

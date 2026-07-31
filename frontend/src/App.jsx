@@ -794,6 +794,10 @@ function PronoCard({ match, prediction, token, onPredicted }) {
           👁 Voir les pronostics
         </button>
       )}
+      {showForm && <TeamFormModal match={match} onClose={()=>setShowForm(false)}/>}
+      <button onClick={()=>setShowForm(true)} style={{marginTop:6,background:"none",border:"1px solid rgba(227,6,19,0.15)",borderRadius:"var(--radius)",padding:"5px 14px",color:"var(--gray)",fontSize:"0.65rem",fontFamily:"var(--font-body)",letterSpacing:"0.1em",textTransform:"uppercase",cursor:"pointer",width:"100%"}}>
+        📊 Historique & Forme
+      </button>
     </div>
   );
 }

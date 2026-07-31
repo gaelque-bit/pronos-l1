@@ -77,7 +77,7 @@ const CSS = `
   body { background:var(--obsidian); color:var(--cream); font-family:var(--font-body); font-weight:300; letter-spacing:0.03em; min-height:100vh; background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(227,6,19,0.08) 0%,transparent 70%); }
   .app { max-width:900px; margin:0 auto; padding:0 20px 80px; }
   .header { padding:32px 0 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(227,6,19,0.3); margin-bottom:32px; }
-  .logo { font-family:var(--font-display); font-size:1.7rem; font-weight:600; letter-spacing:0.18em; color:var(--gold); text-transform:uppercase; display:flex; align-items:center; gap:12px; }
+  .logo { font-family:var(--font-display); font-size:1.7rem; font-weight:600; letter-spacing:0.18em; color:var(--gold); text-transform:uppercase; display:flex; align-items:center; gap:12px; cursor:pointer; }
   .logo img { width:40px; height:40px; object-fit:contain; }
   .logo span { color:var(--cream); font-weight:400; font-style:italic; }
   .user-pill { display:flex; align-items:center; gap:10px; background:var(--coal); border:1px solid rgba(227,6,19,0.25); border-radius:50px; padding:6px 16px 6px 8px; font-size:0.78rem; letter-spacing:0.08em; }
@@ -239,9 +239,7 @@ const CSS = `
   .home-stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--gold); }
   .home-stat-val { font-family:var(--font-display); font-size:2.2rem; font-weight:600; color:var(--gold); line-height:1; }
   .home-stat-label { font-size:0.6rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.12em; margin-top:6px; }
-  .home-match-row { background:var(--coal); border:1px solid rgba(227,6,19,0.1); border-radius:var(--radius); padding:12px 16px; margin-bottom:8px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; transition:border-color var(--transition); }
-  .home-match-row:hover { border-color:rgba(227,6,19,0.25); }
-  .home-match-row.pronostiqué { border-color:rgba(45,106,63,0.3); }
+  .home-match-row { background:var(--coal); border:1px solid rgba(227,6,19,0.1); border-radius:var(--radius); padding:12px 16px; margin-bottom:8px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; }
   .home-team { display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-size:1rem; font-weight:600; }
   .home-team.home { justify-content:flex-end; }
   .home-team.away { justify-content:flex-start; }
@@ -254,7 +252,6 @@ const CSS = `
   .l1-table td { padding:8px 12px; font-size:0.78rem; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:middle; }
   .l1-table tr:last-child td { border-bottom:none; }
   .l1-table tr.rennes td { background:rgba(227,6,19,0.06); }
-  .l1-table tr.rennes td:nth-child(2) { border-left:2px solid var(--gold); }
   @media (max-width: 600px) {
     .app { padding:0 12px 60px; }
     .header { padding:16px 0 14px; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
@@ -269,17 +266,14 @@ const CSS = `
     .bareme-inline { display:none; }
     .podium { gap:6px; }
     .podium-card { padding:12px 8px; }
-    .podium-name { font-size:0.65rem; }
-    .podium-pts { font-size:1.1rem; }
+    .home-stats { gap:8px; }
+    .home-stat-val { font-size:1.6rem; }
     .rank-row { grid-template-columns:36px 1fr auto; gap:10px; padding:10px 12px; }
     .histo-stats { grid-template-columns:repeat(2,1fr); }
     .modal-overlay { padding:16px 12px; }
     .modal-body { padding:16px 16px 24px; }
     .modal-header { padding:18px 16px 0; }
     .modal-title { font-size:1.2rem; }
-    .home-stats { grid-template-columns:repeat(3,1fr); gap:8px; }
-    .home-stat-val { font-size:1.6rem; }
-    .home-team { font-size:0.85rem; gap:5px; }
   }
 `;
 
@@ -407,9 +401,7 @@ function MatchPronosModal({ matchId, token, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box" onClick={e=>e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-title">
-            {data ? `${teamName(data.match.home_team)} — ${teamName(data.match.away_team)}` : "…"}
-          </div>
+          <div className="modal-title">{data ? `${teamName(data.match.home_team)} — ${teamName(data.match.away_team)}` : "…"}</div>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
@@ -432,15 +424,94 @@ function MatchPronosModal({ matchId, token, onClose }) {
                       </div>
                       <div>
                         {data.match.status === "finished"
-                          ? <span className={`histo-pts ${p.points_earned===6?"p6":p.points_earned===4?"p4":p.points_earned===2?"p2":"p0"}`}>
-                              {p.points_earned} pt{p.points_earned>1?"s":""}
-                            </span>
+                          ? <span className={`histo-pts ${p.points_earned===6?"p6":p.points_earned===4?"p4":p.points_earned===2?"p2":"p0"}`}>{p.points_earned} pt{p.points_earned>1?"s":""}</span>
                           : <span className="histo-pts pending">En cours</span>}
                       </div>
                     </div>
                   ))}
                 </div>
               )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Modal Forme & Historique ──────────────────────────────────────────────────
+function TeamFormModal({ match, onClose }) {
+  const [homeForm, setHomeForm] = useState(null);
+  const [awayForm, setAwayForm] = useState(null);
+  const [h2h, setH2h]           = useState(null);
+  const [loading, setLoading]   = useState(true);
+
+  useEffect(() => {
+    if (!match.home_team_api_id || !match.away_team_api_id) { setLoading(false); return; }
+    Promise.all([
+      apiCall(`/team-form/${match.home_team_api_id}`),
+      apiCall(`/team-form/${match.away_team_api_id}`),
+      apiCall(`/head-to-head/${match.home_team_api_id}/${match.away_team_api_id}`),
+    ]).then(([h, a, h2]) => {
+      setHomeForm(h.matches || []);
+      setAwayForm(a.matches || []);
+      setH2h(h2.matches || []);
+    }).catch(console.error).finally(() => setLoading(false));
+  }, [match.id]);
+
+  function resultIcon(m, tn) {
+    const isHome = m.homeTeam === tn;
+    const scored = isHome ? m.homeScore : m.awayScore;
+    const conceded = isHome ? m.awayScore : m.homeScore;
+    if (scored > conceded) return <span style={{color:"#7dcc8a",fontWeight:700}}>V</span>;
+    if (scored < conceded) return <span style={{color:"#e07060",fontWeight:700}}>D</span>;
+    return <span style={{color:"var(--gray)",fontWeight:700}}>N</span>;
+  }
+
+  function MatchRow({ m, highlightTeam }) {
+    const date = new Date(m.date).toLocaleDateString("fr-FR", { day:"2-digit", month:"short" });
+    return (
+      <div style={{display:"grid",gridTemplateColumns:"40px 1fr auto auto",alignItems:"center",gap:8,padding:"7px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+        <div style={{fontSize:"0.6rem",color:"var(--gray)"}}>{date}</div>
+        <div style={{fontSize:"0.75rem"}}>
+          <span style={{fontWeight:m.homeTeam===highlightTeam?600:400}}>{teamName(m.homeTeam)}</span>
+          <span style={{color:"var(--gray)",margin:"0 5px"}}>–</span>
+          <span style={{fontWeight:m.awayTeam===highlightTeam?600:400}}>{teamName(m.awayTeam)}</span>
+        </div>
+        <div style={{fontFamily:"var(--font-display)",fontSize:"0.95rem",color:"var(--gold)",minWidth:36,textAlign:"center"}}>{m.homeScore}–{m.awayScore}</div>
+        <div style={{width:20,textAlign:"center"}}>{resultIcon(m, highlightTeam)}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title" style={{fontSize:"1.1rem"}}>{teamName(match.home_team)} — {teamName(match.away_team)}</div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          {loading ? <div className="spinner"/> : (
+            <>
+              <div style={{marginBottom:20}}>
+                <div style={{fontSize:"0.68rem",fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase",color:"var(--gold)",marginBottom:8}}>🏠 {teamName(match.home_team)} — 5 derniers matchs</div>
+                {homeForm?.length===0
+                  ? <div style={{color:"var(--gray)",fontSize:"0.75rem"}}>Aucun match disponible</div>
+                  : homeForm?.map((m,i)=><MatchRow key={i} m={m} highlightTeam={match.home_team}/>)}
+              </div>
+              <div style={{marginBottom:20}}>
+                <div style={{fontSize:"0.68rem",fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase",color:"var(--gold)",marginBottom:8}}>✈️ {teamName(match.away_team)} — 5 derniers matchs</div>
+                {awayForm?.length===0
+                  ? <div style={{color:"var(--gray)",fontSize:"0.75rem"}}>Aucun match disponible</div>
+                  : awayForm?.map((m,i)=><MatchRow key={i} m={m} highlightTeam={match.away_team}/>)}
+              </div>
+              <div>
+                <div style={{fontSize:"0.68rem",fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase",color:"var(--gold)",marginBottom:8}}>⚔️ Dernières confrontations</div>
+                {h2h?.length===0
+                  ? <div style={{color:"var(--gray)",fontSize:"0.75rem"}}>Aucune confrontation récente</div>
+                  : h2h?.map((m,i)=><MatchRow key={i} m={m} highlightTeam={match.home_team}/>)}
+              </div>
             </>
           )}
         </div>
@@ -499,10 +570,10 @@ function AuthScreen({ onLogin }) {
 
 // ── Home Screen ───────────────────────────────────────────────────────────────
 function HomeScreen({ matches, token, currentUser, onNavigate }) {
-  const [ranking, setRanking]     = useState([]);
+  const [ranking, setRanking]       = useState([]);
   const [predictions, setPredictions] = useState({});
   const [l1Standing, setL1Standing] = useState([]);
-  const [loading, setLoading]     = useState(true);
+  const [loading, setLoading]       = useState(true);
 
   useEffect(()=>{
     Promise.all([
@@ -528,7 +599,6 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
 
   return (
     <div>
-      {/* Stats personnelles */}
       {myRank && (
         <div className="home-stats">
           <div className="home-stat">
@@ -546,7 +616,6 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
         </div>
       )}
 
-      {/* Matchs journée en cours */}
       {currentDay && (
         <>
           <div className="section-title" style={{cursor:"pointer"}} onClick={()=>onNavigate("pronostics")}>
@@ -557,7 +626,7 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
             const pred = predictions[m.id];
             const locked = m.status!=="scheduled"||new Date(m.kickoff)<new Date();
             return (
-              <div key={m.id} className={`home-match-row ${pred?"pronostiqué":""}`}>
+              <div key={m.id} className="home-match-row">
                 <div className="home-team home">
                   <span>{teamName(m.home_team)}</span>
                   <ClubLogo name={m.home_team} size={22}/>
@@ -584,7 +653,6 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
         </>
       )}
 
-      {/* Top classement pronos */}
       {ranking.length>0 && (
         <>
           <div className="section-title" style={{marginTop:24,cursor:"pointer"}} onClick={()=>onNavigate("classement")}>
@@ -596,10 +664,7 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
               <div key={row.id} className={`rank-row ${row.id===currentUser?.id?"me":""}`}>
                 <div className="rank-num">{row.rang}</div>
                 <div>
-                  <div className="rank-username">
-                    {row.username}
-                    {row.id===currentUser?.id&&<span style={{fontSize:"0.68rem",color:"var(--gold)",marginLeft:8}}>← toi</span>}
-                  </div>
+                  <div className="rank-username">{row.username}{row.id===currentUser?.id&&<span style={{fontSize:"0.68rem",color:"var(--gold)",marginLeft:6}}>← toi</span>}</div>
                   <div className="rank-detail">{row.pronos_joues} matchs · {row.scores_exacts} exacts</div>
                 </div>
                 <div className="rank-total">{row.total}<span>pts</span></div>
@@ -609,7 +674,6 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
         </>
       )}
 
-      {/* Classement Ligue 1 réel */}
       {l1Standing.length>0 && (
         <>
           <div className="section-title" style={{marginTop:24}}>Classement Ligue 1</div>
@@ -695,13 +759,13 @@ function ResultsScreen({ matches, loading }) {
 
 // ── Carte pronostic ───────────────────────────────────────────────────────────
 function PronoCard({ match, prediction, token, onPredicted }) {
-  const [home,setHome]   = useState(prediction?.pred_home??"");
-  const [away,setAway]   = useState(prediction?.pred_away??"");
+  const [home,setHome]     = useState(prediction?.pred_home??"");
+  const [away,setAway]     = useState(prediction?.pred_away??"");
   const [saving,setSaving] = useState(false);
-  const [msg,setMsg]     = useState("");
-  const [reactions,setReactions] = useState({});
+  const [msg,setMsg]       = useState("");
+  const [reactions,setReactions]         = useState({});
   const [showMatchPronos,setShowMatchPronos] = useState(false);
-  const [showForm,setShowForm] = useState(false);
+  const [showForm,setShowForm]           = useState(false);
 
   useEffect(()=>{ setHome(prediction?.pred_home??""); setAway(prediction?.pred_away??""); },[prediction]);
 
@@ -738,6 +802,7 @@ function PronoCard({ match, prediction, token, onPredicted }) {
   return (
     <div className={`match-card ${locked?"locked":""}`}>
       {showMatchPronos && <MatchPronosModal matchId={match.id} token={token} onClose={()=>setShowMatchPronos(false)}/>}
+      {showForm && <TeamFormModal match={match} onClose={()=>setShowForm(false)}/>}
       <div className="match-header">
         <div className="match-meta">J{match.matchday} · {formatDate(match.kickoff)}</div>
         <div className="match-badges">
@@ -795,8 +860,7 @@ function PronoCard({ match, prediction, token, onPredicted }) {
           👁 Voir les pronostics
         </button>
       )}
-      {showForm && <TeamFormModal match={match} onClose={()=>setShowForm(false)}/>}
-      <button onClick={()=>setShowForm(true)} style={{marginTop:6,background:"none",border:"1px solid rgba(227,6,19,0.15)",borderRadius:"var(--radius)",padding:"5px 14px",color:"var(--gray)",fontSize:"0.65rem",fontFamily:"var(--font-body)",letterSpacing:"0.1em",textTransform:"uppercase",cursor:"pointer",width:"100%"}}>
+      <button onClick={()=>setShowForm(true)} style={{marginTop:6,background:"none",border:"1px solid rgba(227,6,19,0.15)",borderRadius:"var(--radius)",padding:"5px 14px",color:"var(--gray)",fontSize:"0.65rem",fontFamily:"var(--font-body)",letterSpacing:"0.1em",textTransform:"uppercase",cursor:"pointer",width:"100%",transition:"all var(--transition)"}}>
         📊 Historique & Forme
       </button>
     </div>
@@ -1083,7 +1147,7 @@ export default function App() {
       <style>{CSS}</style>
       <div className="app">
         <header className="header">
-          <div className="logo" onClick={()=>setTab("accueil")} style={{cursor:"pointer"}}>
+          <div className="logo" onClick={()=>setTab("accueil")}>
             <img src={SRFC_LOGO} alt="SRFC"/>
             SRFC <span>Pronos L1</span>
           </div>

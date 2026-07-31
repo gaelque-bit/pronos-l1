@@ -701,6 +701,7 @@ function PronoCard({ match, prediction, token, onPredicted }) {
   const [msg,setMsg]     = useState("");
   const [reactions,setReactions] = useState({});
   const [showMatchPronos,setShowMatchPronos] = useState(false);
+  const [showForm,setShowForm] = useState(false);
 
   useEffect(()=>{ setHome(prediction?.pred_home??""); setAway(prediction?.pred_away??""); },[prediction]);
 

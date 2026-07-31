@@ -11,22 +11,34 @@ router.get('/matches', (req, res) => {
 // GET /api/ranking
 router.get('/ranking', (req, res) => {
   try {
+    // Crée la table bonus_journee si elle n'existe pas
+    db.exec(`CREATE TABLE IF NOT EXISTS bonus_journee (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      matchday INTEGER NOT NULL,
+      pts INTEGER DEFAULT 5,
+      UNIQUE(user_id, matchday)
+    )`);
+
     const rows = db.prepare(`
       SELECT
         u.id, u.username,
-        COALESCE(SUM(p.points_earned), 0)                               AS points_matchs,
-        COALESCE(b.points_bonus, 0)                                     AS points_bonus,
-        COALESCE(SUM(p.points_earned), 0) + COALESCE(b.points_bonus, 0) AS total,
+        COALESCE(SUM(p.points_earned), 0) AS points_matchs,
+        COALESCE(bs.points_bonus, 0) AS points_bonus_saison,
+        COALESCE((SELECT SUM(bj.pts) FROM bonus_journee bj WHERE bj.user_id = u.id), 0) AS points_bonus_journee,
+        COALESCE(SUM(p.points_earned), 0)
+          + COALESCE(bs.points_bonus, 0)
+          + COALESCE((SELECT SUM(bj.pts) FROM bonus_journee bj WHERE bj.user_id = u.id), 0) AS total,
         COUNT(CASE WHEN m.status = 'finished' AND p.id IS NOT NULL THEN 1 END) AS pronos_joues,
-        COUNT(CASE WHEN p.points_earned = 6 THEN 1 END)                AS scores_exacts,
-        COUNT(CASE WHEN p.points_earned = 4 THEN 1 END)                AS bonnes_diff,
-        COUNT(CASE WHEN p.points_earned = 2 THEN 1 END)                AS bons_resultats
+        COUNT(CASE WHEN p.points_earned = 6 THEN 1 END) AS scores_exacts,
+        COUNT(CASE WHEN p.points_earned = 4 THEN 1 END) AS bonnes_diff,
+        COUNT(CASE WHEN p.points_earned = 2 THEN 1 END) AS bons_resultats
       FROM users u
-      LEFT JOIN predictions p ON p.user_id = u.id
-      LEFT JOIN matches m     ON m.id = p.match_id
-      LEFT JOIN bonus b       ON b.user_id = u.id
+      LEFT JOIN predictions p   ON p.user_id = u.id
+      LEFT JOIN matches m       ON m.id = p.match_id
+      LEFT JOIN bonus_saison bs ON bs.user_id = u.id
       WHERE u.role = 'user'
-      GROUP BY u.id, u.username, b.points_bonus
+      GROUP BY u.id, u.username, bs.points_bonus
       ORDER BY total DESC, scores_exacts DESC, pronos_joues ASC
     `).all();
 
@@ -60,7 +72,14 @@ router.get('/evolution', (req, res) => {
           JOIN matches m ON m.id = p.match_id
           WHERE p.user_id = ? AND m.matchday = ? AND m.status = 'finished'
         `).get(user.id, day);
-        cumul += row?.pts || 0;
+
+        let bonusJournee = 0;
+        try {
+          const bj = db.prepare('SELECT COALESCE(pts, 0) AS pts FROM bonus_journee WHERE user_id = ? AND matchday = ?').get(user.id, day);
+          bonusJournee = bj?.pts || 0;
+        } catch(e) {}
+
+        cumul += (row?.pts || 0) + bonusJournee;
         return cumul;
       });
       return { id: user.id, username: user.username, points };
@@ -94,6 +113,44 @@ router.get('/series', (req, res) => {
     });
 
     res.json({ series });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/ranking/journee/:day — classement d'une journée spécifique
+router.get('/ranking/journee/:day', (req, res) => {
+  try {
+    const { day } = req.params;
+    const rows = db.prepare(`
+      SELECT
+        u.id, u.username,
+        COALESCE(SUM(p.points_earned), 0) AS pts_journee
+      FROM users u
+      LEFT JOIN predictions p ON p.user_id = u.id
+      LEFT JOIN matches m ON m.id = p.match_id AND m.matchday = ? AND m.status = 'finished'
+      WHERE u.role = 'user'
+      GROUP BY u.id, u.username
+      ORDER BY pts_journee DESC
+    `).all(day);
+
+    res.json({ journee: +day, classement: rows });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/l1standings — classement réel Ligue 1
+router.get('/l1standings', async (req, res) => {
+  try {
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const response = await fetch(
+      'https://api.football-data.org/v4/competitions/FL1/standings',
+      { headers: { 'X-Auth-Token': process.env.FOOTBALL_API_KEY } }
+    );
+    const data = await response.json();
+    const standings = data?.standings?.[0]?.table || [];
+    res.json({ standings });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }

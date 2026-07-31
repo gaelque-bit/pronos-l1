@@ -574,6 +574,7 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
   const [predictions, setPredictions] = useState({});
   const [l1Standing, setL1Standing] = useState([]);
   const [loading, setLoading]       = useState(true);
+  const [selectedMatch, setSelectedMatch] = useState(null);
 
   useEffect(()=>{
     Promise.all([
@@ -599,6 +600,7 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
 
   return (
     <div>
+      {selectedMatch && <TeamFormModal match={selectedMatch} onClose={()=>setSelectedMatch(null)}/>}
       {myRank && (
         <div className="home-stats">
           <div className="home-stat">
@@ -626,7 +628,7 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
             const pred = predictions[m.id];
             const locked = m.status!=="scheduled"||new Date(m.kickoff)<new Date();
             return (
-              <div key={m.id} className="home-match-row">
+              <div key={m.id} className="home-match-row" onClick={()=>setSelectedMatch(m)} style={{cursor:"pointer"}}>
                 <div className="home-team home">
                   <span>{teamName(m.home_team)}</span>
                   <ClubLogo name={m.home_team} size={22}/>

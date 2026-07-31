@@ -79,9 +79,7 @@ async function syncMatches() {
         const score_away = match.score?.regularTime?.away ?? match.score?.fullTime?.away ?? null;
 
         // Utilise le matchday fixe pour la phase finale
-        const matchday = match.stage === 'GROUP_STAGE'
-          ? (match.matchday || null)
-          : (STAGE_MATCHDAY[match.stage] || null);
+        const matchday = match.matchday || null; // L1
 
         upsert.run({
           api_id:     match.id,

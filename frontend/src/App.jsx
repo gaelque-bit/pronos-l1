@@ -20,7 +20,7 @@ const TEAM_NAMES_FR = {
   "FC Lorient":"Lorient","Lorient":"Lorient",
   "Clermont Foot":"Clermont","Clermont":"Clermont",
   "FC Metz":"Metz","Metz":"Metz",
-  "Angers SCO":"Angers","Angers SCO":"Angers","Angers":"Angers",
+  "Angers SCO":"Angers","Angers":"Angers",
   "AJ Auxerre":"Auxerre","Auxerre":"Auxerre",
   "ES Troyes AC":"Troyes","Troyes":"Troyes",
   "Paris FC":"Paris FC",
@@ -34,6 +34,33 @@ const CHART_COLORS = [
   "#e30613","#ff4d4d","#a00000","#ff8080","#6b6358",
   "#a78bfa","#60a5fa","#34d399","#f87171","#fb923c",
 ];
+
+const SRFC_LOGO = "https://crests.football-data.org/529.png";
+const CLUB_LOGOS = {
+  "Marseille":"https://crests.football-data.org/516.png",
+  "PSG":"https://crests.football-data.org/524.png",
+  "Lyon":"https://crests.football-data.org/523.png",
+  "Monaco":"https://crests.football-data.org/548.png",
+  "Lille":"https://crests.football-data.org/521.png",
+  "Rennes":"https://crests.football-data.org/529.png",
+  "Nice":"https://crests.football-data.org/522.png",
+  "RC Lens":"https://crests.football-data.org/546.png",
+  "Strasbourg":"https://crests.football-data.org/576.png",
+  "Brest":"https://crests.football-data.org/512.png",
+  "Le Havre":"https://crests.football-data.org/533.png",
+  "Lorient":"https://crests.football-data.org/525.png",
+  "Angers":"https://crests.football-data.org/532.png",
+  "Auxerre":"https://crests.football-data.org/519.png",
+  "Troyes":"https://crests.football-data.org/531.png",
+  "Paris FC":"https://crests.football-data.org/1045.png",
+  "Le Mans":"https://upload.wikimedia.org/wikipedia/en/5/57/Le_Mans_FC_logo.svg",
+  "Toulouse":"https://crests.football-data.org/511.png",
+  "Nantes":"https://crests.football-data.org/543.png",
+  "Reims":"https://crests.football-data.org/547.png",
+  "Montpellier":"https://crests.football-data.org/514.png",
+};
+
+const clubLogo = (name) => CLUB_LOGOS[teamName(name)] || null;
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Josefin+Sans:wght@300;400;600&display=swap');
@@ -57,8 +84,8 @@ const CSS = `
   .avatar { width:28px; height:28px; background:var(--gold-dim); border:1px solid var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:1rem; color:var(--gold-light); }
   .btn-logout { background:none; border:none; cursor:pointer; color:var(--gray); font-size:0.72rem; letter-spacing:0.06em; padding:0; transition:color var(--transition); font-family:var(--font-body); }
   .btn-logout:hover { color:var(--red); }
-  .tabs-main { display:flex; border-bottom:1px solid rgba(227,6,19,0.2); margin-bottom:28px; }
-  .tab-main { flex:1; padding:14px 10px; background:none; border:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; font-family:var(--font-body); font-size:0.75rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--gray); transition:all var(--transition); }
+  .tabs-main { display:flex; border-bottom:1px solid rgba(227,6,19,0.2); margin-bottom:28px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tab-main { flex:1; min-width:60px; padding:14px 8px; background:none; border:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; font-family:var(--font-body); font-size:0.7rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); transition:all var(--transition); white-space:nowrap; }
   .tab-main.active { color:var(--gold); border-bottom-color:var(--gold); }
   .tab-main:hover:not(.active) { color:var(--cream); }
   .tabs-sub { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
@@ -93,7 +120,7 @@ const CSS = `
   .match-team { font-family:var(--font-display); font-size:1.15rem; font-weight:600; letter-spacing:0.05em; display:flex; align-items:center; gap:8px; }
   .match-team.home { justify-content:flex-end; text-align:right; }
   .match-team.away { justify-content:flex-start; }
-  .club-logo { width:28px; height:28px; object-fit:contain; }
+  .club-logo { object-fit:contain; }
   .match-score-display { font-family:var(--font-display); font-size:1.5rem; font-weight:600; color:var(--gold); text-align:center; min-width:56px; }
   .match-score-display.pending { color:var(--gray); font-family:var(--font-body); font-size:0.82rem; letter-spacing:0.08em; }
   .prono-input-row { display:flex; align-items:center; gap:10px; background:var(--charcoal); border-radius:var(--radius); padding:9px 12px; border:1px solid rgba(227,6,19,0.08); }
@@ -207,13 +234,33 @@ const CSS = `
   .bonus-intro::before { content:''; position:absolute; top:0; left:24px; right:24px; height:1px; background:linear-gradient(to right,transparent,var(--gold),transparent); }
   .bonus-intro p { font-size:0.8rem; color:var(--gray); line-height:1.7; }
   .bonus-intro strong { color:var(--cream); }
+  .home-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px; }
+  .home-stat { background:var(--coal); border:1px solid rgba(227,6,19,0.15); border-radius:var(--radius); padding:16px; text-align:center; position:relative; overflow:hidden; }
+  .home-stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--gold); }
+  .home-stat-val { font-family:var(--font-display); font-size:2.2rem; font-weight:600; color:var(--gold); line-height:1; }
+  .home-stat-label { font-size:0.6rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.12em; margin-top:6px; }
+  .home-match-row { background:var(--coal); border:1px solid rgba(227,6,19,0.1); border-radius:var(--radius); padding:12px 16px; margin-bottom:8px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; transition:border-color var(--transition); }
+  .home-match-row:hover { border-color:rgba(227,6,19,0.25); }
+  .home-match-row.pronostiqué { border-color:rgba(45,106,63,0.3); }
+  .home-team { display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-size:1rem; font-weight:600; }
+  .home-team.home { justify-content:flex-end; }
+  .home-team.away { justify-content:flex-start; }
+  .home-match-center { text-align:center; }
+  .home-match-time { font-size:0.68rem; color:var(--gray); letter-spacing:0.06em; }
+  .home-match-prono { font-size:0.62rem; color:#7dcc8a; margin-top:3px; }
+  .home-match-todo { font-size:0.62rem; color:var(--gold); margin-top:3px; }
+  .l1-table { width:100%; border-collapse:collapse; }
+  .l1-table th { font-size:0.6rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); padding:8px 12px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .l1-table td { padding:8px 12px; font-size:0.78rem; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:middle; }
+  .l1-table tr:last-child td { border-bottom:none; }
+  .l1-table tr.rennes td { background:rgba(227,6,19,0.06); }
+  .l1-table tr.rennes td:nth-child(2) { border-left:2px solid var(--gold); }
   @media (max-width: 600px) {
     .app { padding:0 12px 60px; }
     .header { padding:16px 0 14px; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
     .logo { font-size:1.2rem; }
     .logo img { width:30px; height:30px; }
-    .tabs-main { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-    .tab-main { font-size:0.65rem; padding:12px 6px; letter-spacing:0.08em; min-width:72px; }
+    .tab-main { font-size:0.6rem; padding:10px 5px; min-width:52px; }
     .match-team { font-size:0.95rem; }
     .match-score-display { font-size:1.2rem; min-width:40px; }
     .prono-input-row { flex-wrap:wrap; gap:7px; }
@@ -230,35 +277,11 @@ const CSS = `
     .modal-body { padding:16px 16px 24px; }
     .modal-header { padding:18px 16px 0; }
     .modal-title { font-size:1.2rem; }
-    .club-logo { width:22px; height:22px; }
+    .home-stats { grid-template-columns:repeat(3,1fr); gap:8px; }
+    .home-stat-val { font-size:1.6rem; }
+    .home-team { font-size:0.85rem; gap:5px; }
   }
 `;
-
-const SRFC_LOGO = "https://crests.football-data.org/529.png";
-const CLUB_LOGOS = {
-  "Marseille":"https://crests.football-data.org/516.png",
-  "PSG":"https://crests.football-data.org/524.png",
-  "Lyon":"https://crests.football-data.org/523.png",
-  "Monaco":"https://crests.football-data.org/548.png",
-  "Lille":"https://crests.football-data.org/521.png",
-  "Rennes":"https://crests.football-data.org/529.png",
-  "Nice":"https://crests.football-data.org/522.png",
-  "RC Lens":"https://crests.football-data.org/546.png",
-  "Strasbourg":"https://crests.football-data.org/576.png",
-  "Brest":"https://crests.football-data.org/512.png",
-  "Le Havre":"https://crests.football-data.org/533.png",
-  "Lorient":"https://crests.football-data.org/525.png",
-  "Angers":"https://crests.football-data.org/532.png",
-  "Auxerre":"https://crests.football-data.org/519.png",
-  "Troyes":"https://crests.football-data.org/531.png",
-  "Paris FC":"https://crests.football-data.org/1045.png",
-  "Le Mans":"https://upload.wikimedia.org/wikipedia/en/5/57/Le_Mans_FC_logo.svg",
-  "Toulouse":"https://crests.football-data.org/511.png",
-  "Nantes":"https://crests.football-data.org/543.png",
-  "Reims":"https://crests.football-data.org/547.png",
-};
-
-const clubLogo = (name) => CLUB_LOGOS[teamName(name)] || null;
 
 const API_BASE = "/api";
 async function apiCall(endpoint, options = {}, token = null) {
@@ -276,6 +299,9 @@ function formatDate(iso) {
 function formatDateShort(iso) {
   return new Date(iso).toLocaleDateString("fr-FR", { day:"2-digit", month:"short", timeZone:"Europe/Paris" });
 }
+function formatTime(iso) {
+  return new Date(iso).toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit", timeZone:"Europe/Paris" });
+}
 function ptsClass(pts) {
   if (pts===6) return "points-badge pts-6";
   if (pts===4) return "points-badge pts-4";
@@ -285,10 +311,9 @@ function ptsClass(pts) {
 
 const REACTIONS = ["👍","🔥","😂","😮","👏","💪"];
 
-// ── Logo club ─────────────────────────────────────────────────────────────────
 function ClubLogo({ name, size=28 }) {
   const logo = clubLogo(name);
-  if (!logo) return <span style={{fontSize:"1.1rem"}}>⚽</span>;
+  if (!logo) return <span style={{fontSize:size*0.7+"px"}}>⚽</span>;
   return <img src={logo} alt={teamName(name)} className="club-logo" style={{width:size,height:size}} onError={e=>e.target.style.display='none'}/>;
 }
 
@@ -472,6 +497,158 @@ function AuthScreen({ onLogin }) {
   );
 }
 
+// ── Home Screen ───────────────────────────────────────────────────────────────
+function HomeScreen({ matches, token, currentUser, onNavigate }) {
+  const [ranking, setRanking]     = useState([]);
+  const [predictions, setPredictions] = useState({});
+  const [l1Standing, setL1Standing] = useState([]);
+  const [loading, setLoading]     = useState(true);
+
+  useEffect(()=>{
+    Promise.all([
+      apiCall("/ranking"),
+      apiCall("/predictions", {}, token),
+      apiCall("/l1standings").catch(()=>({ standings:[] })),
+    ]).then(([r, p, s])=>{
+      setRanking(r.classement||[]);
+      const map={};
+      (p.predictions||[]).forEach(pr=>{ map[pr.match_id]=pr; });
+      setPredictions(map);
+      setL1Standing(s.standings||[]);
+    }).catch(console.error).finally(()=>setLoading(false));
+  },[]);
+
+  const days = [...new Set(matches.filter(m=>m.matchday).map(m=>m.matchday))].sort((a,b)=>a-b);
+  const currentDay = days.find(d=>matches.filter(m=>m.matchday===d).some(m=>m.status==="scheduled"||m.status==="live")) || days[days.length-1];
+  const dayMatches = matches.filter(m=>m.matchday===currentDay).sort((a,b)=>new Date(a.kickoff)-new Date(b.kickoff));
+  const myRank = ranking.find(r=>r.id===currentUser?.id);
+  const aPronostiquer = dayMatches.filter(m=>m.status==="scheduled"&&new Date(m.kickoff)>new Date()&&!predictions[m.id]).length;
+
+  if (loading) return <div className="spinner"/>;
+
+  return (
+    <div>
+      {/* Stats personnelles */}
+      {myRank && (
+        <div className="home-stats">
+          <div className="home-stat">
+            <div className="home-stat-val">#{myRank.rang}</div>
+            <div className="home-stat-label">Mon rang</div>
+          </div>
+          <div className="home-stat">
+            <div className="home-stat-val">{myRank.total}</div>
+            <div className="home-stat-label">Mes points</div>
+          </div>
+          <div className="home-stat">
+            <div className="home-stat-val" style={{color:aPronostiquer>0?"#ff4d4d":"#7dcc8a"}}>{aPronostiquer}</div>
+            <div className="home-stat-label">À pronostiquer</div>
+          </div>
+        </div>
+      )}
+
+      {/* Matchs journée en cours */}
+      {currentDay && (
+        <>
+          <div className="section-title" style={{cursor:"pointer"}} onClick={()=>onNavigate("pronostics")}>
+            Journée {currentDay}
+            <span style={{fontSize:"0.7rem",color:"var(--gray)",fontStyle:"normal",fontFamily:"var(--font-body)"}}>→ Pronostiquer</span>
+          </div>
+          {dayMatches.map(m=>{
+            const pred = predictions[m.id];
+            const locked = m.status!=="scheduled"||new Date(m.kickoff)<new Date();
+            return (
+              <div key={m.id} className={`home-match-row ${pred?"pronostiqué":""}`}>
+                <div className="home-team home">
+                  <span>{teamName(m.home_team)}</span>
+                  <ClubLogo name={m.home_team} size={22}/>
+                </div>
+                <div className="home-match-center">
+                  {m.status==="finished" ? (
+                    <div style={{fontFamily:"var(--font-display)",fontSize:"1.1rem",fontWeight:600,color:"var(--gold)"}}>{m.score_home}–{m.score_away}</div>
+                  ) : m.status==="live" ? (
+                    <div style={{color:"#ff4d4d",fontSize:"0.72rem",fontWeight:600}}><span className="live-dot"/>Live</div>
+                  ) : (
+                    <div className="home-match-time">{formatTime(m.kickoff)}</div>
+                  )}
+                  {pred && !locked && <div className="home-match-prono">✓ {pred.pred_home}-{pred.pred_away}</div>}
+                  {pred && locked && m.status==="finished" && <div className="home-match-prono">{pred.pred_home}-{pred.pred_away} · {pred.points_earned}pts</div>}
+                  {!pred && !locked && <div className="home-match-todo">À pronostiquer</div>}
+                </div>
+                <div className="home-team away">
+                  <ClubLogo name={m.away_team} size={22}/>
+                  <span>{teamName(m.away_team)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </>
+      )}
+
+      {/* Top classement pronos */}
+      {ranking.length>0 && (
+        <>
+          <div className="section-title" style={{marginTop:24,cursor:"pointer"}} onClick={()=>onNavigate("classement")}>
+            Classement Pronos
+            <span style={{fontSize:"0.7rem",color:"var(--gray)",fontStyle:"normal",fontFamily:"var(--font-body)"}}>→ Voir tout</span>
+          </div>
+          <div className="rank-list">
+            {ranking.slice(0,5).map(row=>(
+              <div key={row.id} className={`rank-row ${row.id===currentUser?.id?"me":""}`}>
+                <div className="rank-num">{row.rang}</div>
+                <div>
+                  <div className="rank-username">
+                    {row.username}
+                    {row.id===currentUser?.id&&<span style={{fontSize:"0.68rem",color:"var(--gold)",marginLeft:8}}>← toi</span>}
+                  </div>
+                  <div className="rank-detail">{row.pronos_joues} matchs · {row.scores_exacts} exacts</div>
+                </div>
+                <div className="rank-total">{row.total}<span>pts</span></div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Classement Ligue 1 réel */}
+      {l1Standing.length>0 && (
+        <>
+          <div className="section-title" style={{marginTop:24}}>Classement Ligue 1</div>
+          <div style={{background:"var(--coal)",border:"1px solid rgba(227,6,19,0.1)",borderRadius:"var(--radius)",overflow:"hidden"}}>
+            <table className="l1-table">
+              <thead>
+                <tr>
+                  <th style={{width:36}}>#</th>
+                  <th>Club</th>
+                  <th style={{textAlign:"center",width:36}}>J</th>
+                  <th style={{textAlign:"center",width:48}}>Pts</th>
+                </tr>
+              </thead>
+              <tbody>
+                {l1Standing.map(t=>{
+                  const isRennes = t.team.shortName==="Rennes"||t.team.shortName==="Stade Rennais";
+                  return (
+                    <tr key={t.team.id} className={isRennes?"rennes":""}>
+                      <td style={{fontFamily:"var(--font-display)",fontSize:"0.9rem",color:"var(--gold-dim)"}}>{t.position}</td>
+                      <td>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <ClubLogo name={t.team.shortName} size={20}/>
+                          <span style={{fontWeight:isRennes?600:400,color:isRennes?"var(--gold)":"var(--cream)"}}>{teamName(t.team.shortName)}</span>
+                        </div>
+                      </td>
+                      <td style={{textAlign:"center",color:"var(--gray)"}}>{t.playedGames}</td>
+                      <td style={{textAlign:"center",fontFamily:"var(--font-display)",fontSize:"1rem",fontWeight:600,color:"var(--gold)"}}>{t.points}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Résultats ─────────────────────────────────────────────────────────────────
 function ResultsScreen({ matches, loading }) {
   const [activeDay,setActiveDay] = useState(null);
@@ -503,17 +680,11 @@ function ResultsScreen({ matches, loading }) {
             </span>
           </div>
           <div className="match-teams">
-            <div className="match-team home">
-              <span>{teamName(m.home_team)}</span>
-              <ClubLogo name={m.home_team}/>
-            </div>
+            <div className="match-team home"><span>{teamName(m.home_team)}</span><ClubLogo name={m.home_team}/></div>
             {m.status==="finished" ? <div className="match-score-display">{m.score_home}–{m.score_away}</div>
               : m.status==="live" ? <div className="match-score-display" style={{color:"#ff4d4d"}}>{m.score_home??0}–{m.score_away??0}</div>
               : <div className="match-score-display pending">vs</div>}
-            <div className="match-team away">
-              <ClubLogo name={m.away_team}/>
-              <span>{teamName(m.away_team)}</span>
-            </div>
+            <div className="match-team away"><ClubLogo name={m.away_team}/><span>{teamName(m.away_team)}</span></div>
           </div>
         </div>
       ))}
@@ -580,16 +751,10 @@ function PronoCard({ match, prediction, token, onPredicted }) {
         </div>
       </div>
       <div className="match-teams">
-        <div className="match-team home">
-          <span>{teamName(match.home_team)}</span>
-          <ClubLogo name={match.home_team}/>
-        </div>
+        <div className="match-team home"><span>{teamName(match.home_team)}</span><ClubLogo name={match.home_team}/></div>
         {match.status==="finished" ? <div className="match-score-display">{match.score_home}–{match.score_away}</div>
           : <div className="match-score-display pending">vs</div>}
-        <div className="match-team away">
-          <ClubLogo name={match.away_team}/>
-          <span>{teamName(match.away_team)}</span>
-        </div>
+        <div className="match-team away"><ClubLogo name={match.away_team}/><span>{teamName(match.away_team)}</span></div>
       </div>
       {!locked ? (
         <div className="prono-input-row">
@@ -874,14 +1039,14 @@ function RankingScreen({ currentUser, token }) {
 }
 
 // ── Bonus saison ──────────────────────────────────────────────────────────────
-function BonusScreen({ token }) {
+function BonusScreen() {
   return (
     <div>
       <div className="bonus-intro">
-        <p>Les pronostics de début de saison seront disponibles dès l'ouverture officielle de la saison <strong>2026-2027</strong>. Restez connectés !</p>
+        <p>Les pronostics de début de saison seront disponibles dès l'ouverture officielle de la saison <strong>2026-2027</strong>.</p>
         <p style={{marginTop:8,fontSize:"0.72rem"}}>Champion · Qualifiés européens · Barragiste · Relégués · Meilleur buteur · Classement final Rennes</p>
       </div>
-      <div className="empty"><div className="empty-icon">🏆</div>Bientôt disponible</div>
+      <div className="empty"><div className="empty-icon">🏆</div>Bientôt disponible · Saison débute le 22 août 2026</div>
     </div>
   );
 }
@@ -890,7 +1055,7 @@ function BonusScreen({ token }) {
 export default function App() {
   const [user,setUser]           = useState(()=>{ try{return JSON.parse(localStorage.getItem('pronos_user'));}catch(e){return null;} });
   const [token,setToken]         = useState(()=>localStorage.getItem('pronos_token')||null);
-  const [tab,setTab]             = useState("resultats");
+  const [tab,setTab]             = useState("accueil");
   const [matches,setMatches]     = useState([]);
   const [loading,setLoading]     = useState(true);
   const [showAdmin,setShowAdmin] = useState(false);
@@ -913,7 +1078,7 @@ export default function App() {
       <style>{CSS}</style>
       <div className="app">
         <header className="header">
-          <div className="logo">
+          <div className="logo" onClick={()=>setTab("accueil")} style={{cursor:"pointer"}}>
             <img src={SRFC_LOGO} alt="SRFC"/>
             SRFC <span>Pronos L1</span>
           </div>
@@ -925,7 +1090,7 @@ export default function App() {
               <button className="btn-logout" onClick={handleLogout}>Déconnexion</button>
             </div>
           ) : (
-            <div style={{fontSize:"0.75rem",color:"var(--gray)",letterSpacing:"0.1em",textTransform:"uppercase"}}>Socios SRFC · Saison 2026-2027</div>
+            <div style={{fontSize:"0.75rem",color:"var(--gray)",letterSpacing:"0.1em",textTransform:"uppercase"}}>Socios SRFC · 2026-2027</div>
           )}
         </header>
 
@@ -934,14 +1099,16 @@ export default function App() {
             {showAdmin ? <AdminScreen onBack={()=>setShowAdmin(false)}/> : (
               <>
                 <div className="tabs-main">
+                  <button className={`tab-main ${tab==="accueil"?"active":""}`} onClick={()=>setTab("accueil")}>🏠 Accueil</button>
                   <button className={`tab-main ${tab==="resultats"?"active":""}`} onClick={()=>setTab("resultats")}>Résultats</button>
                   <button className={`tab-main ${tab==="pronostics"?"active":""}`} onClick={()=>setTab("pronostics")}>Pronostics</button>
-                  <button className={`tab-main ${tab==="bonus"?"active":""}`} onClick={()=>setTab("bonus")}>Bonus Saison</button>
+                  <button className={`tab-main ${tab==="bonus"?"active":""}`} onClick={()=>setTab("bonus")}>Bonus</button>
                   <button className={`tab-main ${tab==="classement"?"active":""}`} onClick={()=>setTab("classement")}>Classement</button>
                 </div>
+                {tab==="accueil"    && <HomeScreen matches={matches} token={token} currentUser={user} onNavigate={setTab}/>}
                 {tab==="resultats"  && <ResultsScreen matches={matches} loading={loading}/>}
                 {tab==="pronostics" && <PredictionsScreen matches={matches} loading={loading} token={token}/>}
-                {tab==="bonus"      && <BonusScreen token={token}/>}
+                {tab==="bonus"      && <BonusScreen/>}
                 {tab==="classement" && <RankingScreen currentUser={user} token={token}/>}
               </>
             )}

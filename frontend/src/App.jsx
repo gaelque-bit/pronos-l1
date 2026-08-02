@@ -525,6 +525,7 @@ function AuthScreen({ onLogin }) {
   const [mode,setMode]           = useState("login");
   const [username,setUsername]   = useState("");
   const [password,setPassword]   = useState("");
+  const [email,setEmail]         = useState("");
   const [reglement,setReglement] = useState(false);
   const [error,setError]         = useState("");
   const [loading,setLoading]     = useState(false);
@@ -533,7 +534,7 @@ function AuthScreen({ onLogin }) {
     if (mode==="register"&&!reglement) { setError("Tu dois accepter le règlement."); return; }
     setError(""); setLoading(true);
     try {
-      const data = await apiCall(`/auth/${mode}`,{method:"POST",body:JSON.stringify({username,password,reglementAccepted:reglement})});
+      const data = await apiCall(`/auth/${mode}`,{method:"POST",body:JSON.stringify({username,password,email,reglementAccepted:reglement})});
       onLogin(data.user, data.token);
     } catch(e) { setError(e.message); }
     finally { setLoading(false); }
@@ -550,6 +551,7 @@ function AuthScreen({ onLogin }) {
         <h2>{mode==="login"?"Connexion":"Inscription"}</h2>
         {error && <div className="error-msg">{error}</div>}
         <div className="field"><label>Pseudonyme</label><input value={username} onChange={e=>setUsername(e.target.value)} placeholder="ex: LeViking!" onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/></div>
+       {mode==="register" && <div className="field"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="ton@email.fr"/></div>}
         <div className="field"><label>Mot de passe</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/></div>
         {mode==="register" && (
           <div className="reglement-check" onClick={()=>setReglement(r=>!r)}>

@@ -1179,7 +1179,7 @@ export default function App() {
                 {tab==="accueil"    && <HomeScreen matches={matches} token={token} currentUser={user} onNavigate={setTab}/>}
                 {tab==="resultats"  && <ResultsScreen matches={matches} loading={loading}/>}
                 {tab==="pronostics" && <PredictionsScreen matches={matches} loading={loading} token={token}/>}
-                {tab==="bonus"      && <BonusScreen/>}
+                {tab==="bonus"      && <BonusScreen token={token}/>}
                 {tab==="classement" && <RankingScreen currentUser={user} token={token}/>}
               </>
             )}

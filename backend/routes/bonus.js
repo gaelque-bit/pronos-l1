@@ -2,34 +2,46 @@ const express = require('express');
 const router  = express.Router();
 const db      = require('../database');
 
-// GET /api/bonus — charger les réponses bonus de l'utilisateur connecté
-router.get('/bonus', (req, res) => {
-  const bonus = db.prepare('SELECT * FROM bonus WHERE user_id = ?').get(req.user.id);
-  res.json({ bonus: bonus || null });
+const LOCK_DATE = new Date('2026-08-22T17:00:00Z'); // Veille du 1er match
+
+// GET /api/bonus-saison — charger les réponses de l'utilisateur
+router.get('/bonus-saison', (req, res) => {
+  const bonus = db.prepare('SELECT * FROM bonus_saison WHERE user_id = ?').get(req.user.id);
+  res.json({ bonus: bonus || null, locked: new Date() >= LOCK_DATE });
 });
 
-// POST /api/bonus — sauvegarder une réponse bonus
-router.post('/bonus', (req, res) => {
-  const { questionId, answerId } = req.body;
-  if (!questionId || !answerId)
-    return res.status(400).json({ error: 'questionId et answerId sont obligatoires.' });
+// POST /api/bonus-saison — sauvegarder les réponses
+router.post('/bonus-saison', (req, res) => {
+  if (new Date() >= LOCK_DATE)
+    return res.status(403).json({ error: 'Les bonus de début de saison sont fermés.' });
 
-  const now = new Date();
-  const lockDate = new Date('2026-06-12T22:00:00Z');
-  if (now >= lockDate)
-    return res.status(403).json({ error: 'Les bonus sont fermés.' });
+  const {
+    champion, euro1, euro2, euro3, euro4,
+    barragiste, relegate1, relegate2,
+    meilleur_buteur, classement_rennes
+  } = req.body;
 
-  db.prepare('INSERT OR IGNORE INTO bonus (user_id) VALUES (?)').run(req.user.id);
+  db.prepare(`
+    INSERT INTO bonus_saison (user_id, champion, euro1, euro2, euro3, euro4, barragiste, relegate1, relegate2, meilleur_buteur, classement_rennes, submitted_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    ON CONFLICT(user_id) DO UPDATE SET
+      champion          = excluded.champion,
+      euro1             = excluded.euro1,
+      euro2             = excluded.euro2,
+      euro3             = excluded.euro3,
+      euro4             = excluded.euro4,
+      barragiste        = excluded.barragiste,
+      relegate1         = excluded.relegate1,
+      relegate2         = excluded.relegate2,
+      meilleur_buteur   = excluded.meilleur_buteur,
+      classement_rennes = excluded.classement_rennes,
+      submitted_at      = datetime('now')
+  `).run(
+    req.user.id, champion, euro1, euro2, euro3, euro4,
+    barragiste, relegate1, relegate2, meilleur_buteur, classement_rennes
+  );
 
-  if (questionId === 'winner') {
-    db.prepare('UPDATE bonus SET winner_id = ? WHERE user_id = ?').run(answerId, req.user.id);
-  } else if (questionId === 'topscorer') {
-    db.prepare('UPDATE bonus SET top_scorer_id = ? WHERE user_id = ?').run(answerId, req.user.id);
-  } else {
-    return res.status(400).json({ error: 'Question inconnue.' });
-  }
-
-  res.json({ message: 'Bonus enregistré.' });
+  res.json({ message: 'Bonus saison enregistré.' });
 });
 
 module.exports = router;

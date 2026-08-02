@@ -1109,15 +1109,119 @@ function RankingScreen({ currentUser, token }) {
   );
 }
 
-// ── Bonus saison ──────────────────────────────────────────────────────────────
-function BonusScreen() {
+const CLUBS_L1 = [
+  "Marseille","PSG","Lyon","Monaco","Lille","Rennes","Nice","RC Lens",
+  "Strasbourg","Brest","Le Havre","Lorient","Angers","Auxerre","Troyes",
+  "Paris FC","Le Mans","Toulouse","Nantes","Reims"
+];
+
+function ClubSelect({ value, onChange, disabled, exclude=[] }) {
+  return (
+    <select value={value||""} onChange={e=>onChange(e.target.value)} disabled={disabled}
+      style={{width:"100%",padding:"10px 12px",background:"#1a0000",border:"1px solid rgba(227,6,19,0.2)",borderRadius:"4px",color:value?"#f2ead8":"#9a8f85",fontFamily:"'Josefin Sans',sans-serif",fontSize:"0.85rem",outline:"none",cursor:disabled?"default":"pointer"}}>
+      <option value="">— Choisir un club —</option>
+      {CLUBS_L1.filter(c=>!exclude.includes(c)||c===value).map(c=>(
+        <option key={c} value={c}>{c}</option>
+      ))}
+    </select>
+  );
+}
+
+function BonusScreen({ token }) {
+  const [bonus, setBonus]   = useState(null);
+  const [locked, setLocked] = useState(false);
+  const [form, setForm]     = useState({
+    champion:"", euro1:"", euro2:"", euro3:"", euro4:"",
+    barragiste:"", relegate1:"", relegate2:"",
+    meilleur_buteur:"", classement_rennes:""
+  });
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg]       = useState("");
+  const [confirmed, setConfirmed] = useState(false);
+
+  useEffect(()=>{
+    apiCall("/bonus-saison",{},token).then(d=>{
+      setLocked(d.locked);
+      if (d.bonus) {
+        setForm({
+          champion: d.bonus.champion||"",
+          euro1: d.bonus.euro1||"", euro2: d.bonus.euro2||"",
+          euro3: d.bonus.euro3||"", euro4: d.bonus.euro4||"",
+          barragiste: d.bonus.barragiste||"",
+          relegate1: d.bonus.relegate1||"", relegate2: d.bonus.relegate2||"",
+          meilleur_buteur: d.bonus.meilleur_buteur||"",
+          classement_rennes: d.bonus.classement_rennes||""
+        });
+        setConfirmed(true);
+      }
+    }).catch(console.error);
+  },[]);
+
+  async function handleSave() {
+    setSaving(true); setMsg("");
+    try {
+      await apiCall("/bonus-saison",{method:"POST",body:JSON.stringify(form)},token);
+      setMsg("✅ Bonus saison enregistré !");
+      setConfirmed(true);
+      setTimeout(()=>setMsg(""),3000);
+    } catch(e) { setMsg("❌ "+e.message); }
+    finally { setSaving(false); }
+  }
+
+  const euroSelected = [form.euro1,form.euro2,form.euro3,form.euro4].filter(Boolean);
+  const relegSelected = [form.relegate1,form.relegate2].filter(Boolean);
+
+  const questions = [
+    { key:"champion", label:"🏆 Champion de Ligue 1", pts:20, type:"club" },
+    { key:"euro1", label:"🇪🇺 1er qualifié européen", pts:10, type:"club" },
+    { key:"euro2", label:"🇪🇺 2e qualifié européen", pts:10, type:"club" },
+    { key:"euro3", label:"🇪🇺 3e qualifié européen", pts:10, type:"club" },
+    { key:"euro4", label:"🇪🇺 4e qualifié européen", pts:10, type:"club" },
+    { key:"barragiste", label:"⚠️ Barragiste", pts:15, type:"club" },
+    { key:"relegate1", label:"⬇️ 1er relégué", pts:10, type:"club" },
+    { key:"relegate2", label:"⬇️ 2e relégué", pts:10, type:"club" },
+    { key:"meilleur_buteur", label:"⚽ Meilleur buteur", pts:20, type:"text", placeholder:"Nom du joueur..." },
+    { key:"classement_rennes", label:"❤️ Classement final Rennes (position exacte)", pts:5, type:"number", placeholder:"ex: 7" },
+  ];
+
   return (
     <div>
       <div className="bonus-intro">
-        <p>Les pronostics de début de saison seront disponibles dès l'ouverture officielle de la saison <strong>2026-2027</strong>.</p>
-        <p style={{marginTop:8,fontSize:"0.72rem"}}>Champion · Qualifiés européens · Barragiste · Relégués · Meilleur buteur · Classement final Rennes</p>
+        <p>Pronostics de début de saison à soumettre <strong>avant le 22 août 2026 à 19h00</strong>. Aucune modification possible après.</p>
+        <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:12,paddingTop:12,borderTop:"1px solid rgba(255,255,255,0.05)"}}>
+          {[{l:"Champion",p:20},{l:"4 qualifiés européens",p:"4×10"},{l:"Barragiste",p:15},{l:"2 relégués",p:"2×10"},{l:"Meilleur buteur",p:20},{l:"Classement Rennes",p:5}].map(b=>(
+            <span key={b.l} style={{display:"flex",alignItems:"center",gap:6,fontSize:"0.68rem",color:"#9a8f85"}}>
+              <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"1rem",color:"#e30613"}}>{b.p}</span>{b.l}
+            </span>
+          ))}
+        </div>
       </div>
-      <div className="empty"><div className="empty-icon">🏆</div>Bientôt disponible · Saison débute le 22 août 2026</div>
+
+      {locked && <div style={{background:"rgba(192,57,43,0.1)",border:"1px solid rgba(192,57,43,0.25)",borderRadius:"4px",padding:"10px 16px",fontSize:"0.78rem",color:"#d07060",marginBottom:16}}>🔒 Les bonus de début de saison sont fermés.</div>}
+
+      {questions.map(q=>(
+        <div key={q.key} style={{background:"#1a1a1a",border:`1px solid ${form[q.key]?"rgba(45,106,63,0.35)":"rgba(227,6,19,0.1)"}`,borderRadius:"4px",padding:"14px 18px",marginBottom:8}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+            <div style={{fontSize:"0.78rem",fontWeight:600,color:"#f2ead8"}}>{q.label}</div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"1.2rem",fontWeight:600,color:"#e30613"}}>{q.pts}<span style={{fontFamily:"'Josefin Sans',sans-serif",fontSize:"0.6rem",color:"#9a8f85",marginLeft:2}}>pts</span></div>
+          </div>
+          {q.type==="club" && <ClubSelect value={form[q.key]} onChange={v=>setForm(f=>({...f,[q.key]:v}))} disabled={locked}/>}
+          {q.type==="text" && <input value={form[q.key]} onChange={e=>setForm(f=>({...f,[q.key]:e.target.value}))} disabled={locked} placeholder={q.placeholder}
+            style={{width:"100%",padding:"10px 12px",background:"#1a0000",border:"1px solid rgba(227,6,19,0.2)",borderRadius:"4px",color:"#f2ead8",fontFamily:"'Josefin Sans',sans-serif",fontSize:"0.85rem",outline:"none"}}/>}
+          {q.type==="number" && <input type="number" min="1" max="18" value={form[q.key]} onChange={e=>setForm(f=>({...f,[q.key]:e.target.value}))} disabled={locked} placeholder={q.placeholder}
+            style={{width:"100%",padding:"10px 12px",background:"#1a0000",border:"1px solid rgba(227,6,19,0.2)",borderRadius:"4px",color:"#f2ead8",fontFamily:"'Josefin Sans',sans-serif",fontSize:"0.85rem",outline:"none"}}/>}
+        </div>
+      ))}
+
+      {!locked && (
+        <div style={{marginTop:16}}>
+          {msg && <div style={{marginBottom:10,fontSize:"0.78rem",color:msg.startsWith("✅")?"#7dcc8a":"#f08080"}}>{msg}</div>}
+          <button onClick={handleSave} disabled={saving}
+            style={{width:"100%",padding:"13px",background:"#e30613",color:"#0d0d0d",border:"none",borderRadius:"4px",fontFamily:"'Josefin Sans',sans-serif",fontSize:"0.75rem",fontWeight:600,letterSpacing:"0.18em",textTransform:"uppercase",cursor:"pointer"}}>
+            {saving?"Enregistrement…":confirmed?"Mettre à jour mes pronostics":"Valider mes pronostics bonus"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

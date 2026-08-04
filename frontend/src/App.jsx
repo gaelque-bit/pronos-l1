@@ -68,7 +68,7 @@ const CSS = `
   :root {
     --obsidian:#0d0d0d; --charcoal:#1a0000; --coal:#1a1a1a; --muted:#2a0000;
     --gold:#e30613; --gold-light:#ff4d4d; --gold-dim:#a00000;
-    --cream:#f2ead8; --gray:#9a8f85; --red:#c0392b;
+    --cream:#f2ead8; --gray:#b5a99e; --red:#c0392b;
     --green-q:#2d6a3f;
     --font-display:'Cormorant Garamond',Georgia,serif;
     --font-body:'Josefin Sans',sans-serif;

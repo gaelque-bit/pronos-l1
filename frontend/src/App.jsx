@@ -1001,7 +1001,7 @@ function DistinctionsScreen({ token }) {
         {display.map((d,i)=>(
           <div className="distinction-card" key={i}>
             <div className="distinction-emoji">
-  {d.label==="Canari d'Or"
+  {d.label.includes('Canari')
     ? <img src="https://crests.football-data.org/543.png" alt="FC Nantes" style={{width:32,height:32,objectFit:"contain"}}/>
     : d.emoji}
 </div>

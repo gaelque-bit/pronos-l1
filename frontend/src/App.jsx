@@ -1228,7 +1228,105 @@ function BonusScreen({ token }) {
   );
 }
 
-// ── App ───────────────────────────────────────────────────────────────────────
+// ── Historique ────────────────────────────────────────────────────────────────
+const CDM_2026 = [
+  { rang:1, username:"JeanClaudeVanDamme", total:214, points_matchs:214, points_bonus:0, scores_exacts:10 },
+  { rang:2, username:"Xavier le terrassier", total:211, points_matchs:196, points_bonus:15, scores_exacts:13 },
+  { rang:3, username:"La Queen", total:210, points_matchs:200, points_bonus:10, scores_exacts:12 },
+  { rang:4, username:"JeffleCannibale", total:200, points_matchs:200, points_bonus:0, scores_exacts:9 },
+  { rang:5, username:"Donald Trump POTUS", total:186, points_matchs:186, points_bonus:0, scores_exacts:12 },
+  { rang:6, username:"Laguerta", total:170, points_matchs:160, points_bonus:10, scores_exacts:10 },
+  { rang:6, username:"LeViking!", total:170, points_matchs:160, points_bonus:10, scores_exacts:9 },
+  { rang:8, username:"NicoLaFaucheuse", total:48, points_matchs:48, points_bonus:0, scores_exacts:3 },
+];
+
+function HistoriqueScreen() {
+  return (
+    <div>
+      <div className="section-title">🏆 Coupe du Monde 2026</div>
+      <div style={{background:"var(--coal)",border:"1px solid rgba(227,6,19,0.15)",borderRadius:"var(--radius)",padding:"14px 18px",marginBottom:20,fontSize:"0.78rem",color:"var(--gray)",lineHeight:1.7}}>
+        <strong style={{color:"var(--cream)"}}>Vainqueur :</strong> 🇪🇸 Espagne · <strong style={{color:"var(--cream)"}}>Meilleur buteur :</strong> Kylian Mbappé 🇫🇷
+      </div>
+
+      {/* Podium */}
+      <div className="podium" style={{marginBottom:24}}>
+        {[CDM_2026[1], CDM_2026[0], CDM_2026[2]].map(p=>(
+          <div key={p.username} className={`podium-card rank-${p.rang}`}>
+            {p.rang===1&&<div className="crown">🏆</div>}
+            <div className="podium-rank">#{p.rang}</div>
+            <div className="podium-name">{p.username}</div>
+            <div className="podium-pts">{p.total}<span style={{fontSize:"0.72rem",fontFamily:"var(--font-body)",color:"var(--gray)",marginLeft:4}}>pts</span></div>
+            <div style={{fontSize:"0.7rem",color:"var(--gray)",marginTop:4}}>{p.scores_exacts} exacts</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Classement complet */}
+      <div className="section-title">Classement complet</div>
+      <div className="rank-list">
+        {CDM_2026.map((row,i)=>(
+          <div key={i} className="rank-row" style={{cursor:"default"}}>
+            <div className="rank-num">{row.rang}</div>
+            <div>
+              <div className="rank-username">{row.username}</div>
+              <div className="rank-detail">{row.scores_exacts} exacts · +{row.points_bonus} bonus</div>
+            </div>
+            <div className="rank-total">{row.total}<span>pts</span></div>
+          </div>
+        ))}
+      </div>
+
+      {/* Distinctions */}
+      <div className="section-title" style={{marginTop:24}}>Distinctions CDM 2026</div>
+      <div className="distinctions-grid">
+        {[
+          { emoji:"🥇", label:"Champion des Pronos", username:"JeanClaudeVanDamme", detail:"214 pts" },
+          { emoji:"🏆", label:"Roi du Score Exact", username:"Xavier le terrassier", detail:"13 exacts" },
+          { emoji:"🎯", label:"Roi des Bonus", username:"Xavier le terrassier", detail:"15 pts bonus" },
+          { emoji:"🥴", label:"Lanterne Rouge", username:"NicoLaFaucheuse", detail:"48 pts" },
+        ].map((d,i)=>(
+          <div className="distinction-card" key={i}>
+            <div className="distinction-emoji">{d.emoji}</div>
+            <div><div className="distinction-label">{d.label}</div><div className="distinction-winner">{d.username}</div></div>
+            <div className="distinction-detail">{d.detail}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Saisons L1 précédentes */}
+      <div className="section-title" style={{marginTop:24}}>Palmarès Pronos Socios SRFC</div>
+      <div style={{background:"var(--coal)",border:"1px solid rgba(227,6,19,0.1)",borderRadius:"var(--radius)",overflow:"hidden"}}>
+        <table style={{width:"100%",borderCollapse:"collapse"}}>
+          <thead>
+            <tr style={{borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+              <th style={{padding:"8px 14px",fontSize:"0.6rem",color:"var(--gray)",textTransform:"uppercase",letterSpacing:"0.1em",textAlign:"left"}}>Saison</th>
+              <th style={{padding:"8px 14px",fontSize:"0.6rem",color:"var(--gray)",textTransform:"uppercase",letterSpacing:"0.1em",textAlign:"left"}}>🥇 1er</th>
+              <th style={{padding:"8px 14px",fontSize:"0.6rem",color:"var(--gray)",textTransform:"uppercase",letterSpacing:"0.1em",textAlign:"left"}}>🥈 2e</th>
+              <th style={{padding:"8px 14px",fontSize:"0.6rem",color:"var(--gray)",textTransform:"uppercase",letterSpacing:"0.1em",textAlign:"left"}}>🥉 3e</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              { saison:"2022-2023", p1:"Alexandre & Gaël", p2:"—", p3:"Théo" },
+              { saison:"2023-2024", p1:"Alexandre", p2:"Gaël", p3:"Nicolas" },
+              { saison:"2024-2025", p1:"Margot", p2:"Gaël", p3:"Alexandre" },
+              { saison:"2025-2026", p1:"Pierre", p2:"Gaël", p3:"Johann" },
+              { saison:"CDM 2026", p1:"Alexandre (JCVD)", p2:"Gaël (Xavier)", p3:"Margot (La Queen)" },
+            ].map((s,i)=>(
+              <tr key={i} style={{borderBottom:"1px solid rgba(255,255,255,0.03)"}}>
+                <td style={{padding:"9px 14px",fontSize:"0.78rem",fontWeight:600,color:"var(--gold)"}}>{s.saison}</td>
+                <td style={{padding:"9px 14px",fontSize:"0.78rem",color:"var(--cream)"}}>{s.p1}</td>
+                <td style={{padding:"9px 14px",fontSize:"0.78rem",color:"var(--gray)"}}>{s.p2}</td>
+                <td style={{padding:"9px 14px",fontSize:"0.78rem",color:"var(--gray)"}}>{s.p3}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+}// ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user,setUser]           = useState(()=>{ try{return JSON.parse(localStorage.getItem('pronos_user'));}catch(e){return null;} });
   const [token,setToken]         = useState(()=>localStorage.getItem('pronos_token')||null);
@@ -1281,12 +1379,14 @@ export default function App() {
                   <button className={`tab-main ${tab==="pronostics"?"active":""}`} onClick={()=>setTab("pronostics")}>Pronostics</button>
                   <button className={`tab-main ${tab==="bonus"?"active":""}`} onClick={()=>setTab("bonus")}>Bonus</button>
                   <button className={`tab-main ${tab==="classement"?"active":""}`} onClick={()=>setTab("classement")}>Classement</button>
+                  <button className={`tab-main ${tab==="historique"?"active":""}`} onClick={()=>setTab("historique")}>Historique</button>
                 </div>
                 {tab==="accueil"    && <HomeScreen matches={matches} token={token} currentUser={user} onNavigate={setTab}/>}
                 {tab==="resultats"  && <ResultsScreen matches={matches} loading={loading}/>}
                 {tab==="pronostics" && <PredictionsScreen matches={matches} loading={loading} token={token}/>}
                 {tab==="bonus"      && <BonusScreen token={token}/>}
                 {tab==="classement" && <RankingScreen currentUser={user} token={token}/>}
+                {tab==="historique" && <HistoriqueScreen/>}
               </>
             )}
           </>

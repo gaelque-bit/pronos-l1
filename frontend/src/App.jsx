@@ -1000,7 +1000,11 @@ function DistinctionsScreen({ token }) {
       <div className="distinctions-grid">
         {display.map((d,i)=>(
           <div className="distinction-card" key={i}>
-            <div className="distinction-emoji">{d.emoji}</div>
+            <div className="distinction-emoji">
+  {d.label==="Canari d'Or"
+    ? <img src="https://crests.football-data.org/543.png" alt="FC Nantes" style={{width:32,height:32,objectFit:"contain"}}/>
+    : d.emoji}
+</div>
             <div><div className="distinction-label">{d.label}</div><div className={`distinction-winner ${!d.username?"empty":""}`}>{d.username||"À déterminer"}</div></div>
             <div className="distinction-detail">{d.detail}</div>
           </div>

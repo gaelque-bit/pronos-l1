@@ -1184,8 +1184,8 @@ function BonusScreen({ token }) {
     { key:"euro3", label:"🇪🇺 3e qualifié européen", pts:10, type:"club" },
     { key:"euro4", label:"🇪🇺 4e qualifié européen", pts:10, type:"club" },
     { key:"barragiste", label:"⚠️ Barragiste", pts:10, type:"club" },
-    { key:"relegate1", label:"⬇️ 1er relégué", pts:10, type:"club" },
-    { key:"relegate2", label:"⬇️ 2e relégué", pts:10, type:"club" },
+    { key:"relegate1", label:"⬇️ 18e — Relégué direct", pts:10, type:"club" },
+    { key:"relegate2", label:"⬇️ 17e — Relégué direct", pts:10, type:"club" },
     { key:"meilleur_buteur", label:"⚽ Meilleur buteur", pts:10, type:"text", placeholder:"Nom du joueur..." },
     { key:"classement_rennes", label:"❤️ Classement final Rennes (position exacte)", pts:15, type:"number", placeholder:"ex: 7" },
   ];

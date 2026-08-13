@@ -64,7 +64,7 @@ const clubLogo = (name) => CLUB_LOGOS[teamName(name)] || null;
 const CLUBS_L1 = [
   "Marseille","PSG","Lyon","Monaco","Lille","Rennes","Nice","RC Lens",
   "Strasbourg","Brest","Le Havre","Lorient","Angers","Auxerre","Troyes",
-  "Paris FC","Le Mans","Toulouse","Reims"
+  "Paris FC","Le Mans","Toulouse"
 ];
 
 const CSS = `

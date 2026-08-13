@@ -55,12 +55,17 @@ const CLUB_LOGOS = {
   "Paris FC":"https://crests.football-data.org/1045.png",
   "Le Mans":"https://upload.wikimedia.org/wikipedia/en/5/57/Le_Mans_FC_logo.svg",
   "Toulouse":"https://crests.football-data.org/511.png",
-  "Nantes":"https://crests.football-data.org/543.png",
   "Reims":"https://crests.football-data.org/547.png",
   "Montpellier":"https://crests.football-data.org/514.png",
 };
 
 const clubLogo = (name) => CLUB_LOGOS[teamName(name)] || null;
+
+const CLUBS_L1 = [
+  "Marseille","PSG","Lyon","Monaco","Lille","Rennes","Nice","RC Lens",
+  "Strasbourg","Brest","Le Havre","Lorient","Angers","Auxerre","Troyes",
+  "Paris FC","Le Mans","Toulouse","Reims"
+];
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Josefin+Sans:wght@300;400;600&display=swap');
@@ -69,7 +74,6 @@ const CSS = `
     --obsidian:#0d0d0d; --charcoal:#1a0000; --coal:#1a1a1a; --muted:#2a0000;
     --gold:#e30613; --gold-light:#ff4d4d; --gold-dim:#a00000;
     --cream:#f2ead8; --gray:#b5a99e; --red:#c0392b;
-    --green-q:#2d6a3f;
     --font-display:'Cormorant Garamond',Georgia,serif;
     --font-body:'Josefin Sans',sans-serif;
     --radius:4px; --transition:0.22s ease;
@@ -239,7 +243,7 @@ const CSS = `
   .home-stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--gold); }
   .home-stat-val { font-family:var(--font-display); font-size:2.2rem; font-weight:600; color:var(--gold); line-height:1; }
   .home-stat-label { font-size:0.6rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.12em; margin-top:6px; }
-  .home-match-row { background:var(--coal); border:1px solid rgba(227,6,19,0.1); border-radius:var(--radius); padding:12px 16px; margin-bottom:8px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; }
+  .home-match-row { background:var(--coal); border:1px solid rgba(227,6,19,0.1); border-radius:var(--radius); padding:12px 16px; margin-bottom:8px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; cursor:pointer; }
   .home-team { display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-size:1rem; font-weight:600; }
   .home-team.home { justify-content:flex-end; }
   .home-team.away { justify-content:flex-start; }
@@ -318,9 +322,7 @@ function HistoriqueModal({ userId, token, onClose }) {
 
   useEffect(() => {
     apiCall(`/predictions/user/${userId}`, {}, token)
-      .then(d => setData(d))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      .then(d => setData(d)).catch(console.error).finally(() => setLoading(false));
   }, [userId]);
 
   const finished = data?.predictions?.filter(p => p.status === "finished") || [];
@@ -392,9 +394,7 @@ function MatchPronosModal({ matchId, token, onClose }) {
 
   useEffect(() => {
     apiCall(`/predictions/match/${matchId}`, {}, token)
-      .then(d => setData(d))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      .then(d => setData(d)).catch(console.error).finally(() => setLoading(false));
   }, [matchId]);
 
   return (
@@ -496,20 +496,17 @@ function TeamFormModal({ match, onClose }) {
             <>
               <div style={{marginBottom:20}}>
                 <div style={{fontSize:"0.68rem",fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase",color:"var(--gold)",marginBottom:8}}>🏠 {teamName(match.home_team)} — 5 derniers matchs</div>
-                {homeForm?.length===0
-                  ? <div style={{color:"var(--gray)",fontSize:"0.75rem"}}>Aucun match disponible</div>
+                {homeForm?.length===0 ? <div style={{color:"var(--gray)",fontSize:"0.75rem"}}>Aucun match disponible</div>
                   : homeForm?.map((m,i)=><MatchRow key={i} m={m} highlightTeam={match.home_team}/>)}
               </div>
               <div style={{marginBottom:20}}>
                 <div style={{fontSize:"0.68rem",fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase",color:"var(--gold)",marginBottom:8}}>✈️ {teamName(match.away_team)} — 5 derniers matchs</div>
-                {awayForm?.length===0
-                  ? <div style={{color:"var(--gray)",fontSize:"0.75rem"}}>Aucun match disponible</div>
+                {awayForm?.length===0 ? <div style={{color:"var(--gray)",fontSize:"0.75rem"}}>Aucun match disponible</div>
                   : awayForm?.map((m,i)=><MatchRow key={i} m={m} highlightTeam={match.away_team}/>)}
               </div>
               <div>
                 <div style={{fontSize:"0.68rem",fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase",color:"var(--gold)",marginBottom:8}}>⚔️ Dernières confrontations</div>
-                {h2h?.length===0
-                  ? <div style={{color:"var(--gray)",fontSize:"0.75rem"}}>Aucune confrontation récente</div>
+                {h2h?.length===0 ? <div style={{color:"var(--gray)",fontSize:"0.75rem"}}>Aucune confrontation récente</div>
                   : h2h?.map((m,i)=><MatchRow key={i} m={m} highlightTeam={match.home_team}/>)}
               </div>
             </>
@@ -551,7 +548,7 @@ function AuthScreen({ onLogin }) {
         <h2>{mode==="login"?"Connexion":"Inscription"}</h2>
         {error && <div className="error-msg">{error}</div>}
         <div className="field"><label>Pseudonyme</label><input value={username} onChange={e=>setUsername(e.target.value)} placeholder="ex: LeViking!" onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/></div>
-       {mode==="register" && <div className="field"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="ton@email.fr"/></div>}
+        {mode==="register" && <div className="field"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="ton@email.fr"/></div>}
         <div className="field"><label>Mot de passe</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/></div>
         {mode==="register" && (
           <div className="reglement-check" onClick={()=>setReglement(r=>!r)}>
@@ -572,10 +569,10 @@ function AuthScreen({ onLogin }) {
 
 // ── Home Screen ───────────────────────────────────────────────────────────────
 function HomeScreen({ matches, token, currentUser, onNavigate }) {
-  const [ranking, setRanking]       = useState([]);
+  const [ranking, setRanking]         = useState([]);
   const [predictions, setPredictions] = useState({});
-  const [l1Standing, setL1Standing] = useState([]);
-  const [loading, setLoading]       = useState(true);
+  const [l1Standing, setL1Standing]   = useState([]);
+  const [loading, setLoading]         = useState(true);
   const [selectedMatch, setSelectedMatch] = useState(null);
 
   useEffect(()=>{
@@ -605,21 +602,11 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
       {selectedMatch && <TeamFormModal match={selectedMatch} onClose={()=>setSelectedMatch(null)}/>}
       {myRank && (
         <div className="home-stats">
-          <div className="home-stat">
-            <div className="home-stat-val">#{myRank.rang}</div>
-            <div className="home-stat-label">Mon rang</div>
-          </div>
-          <div className="home-stat">
-            <div className="home-stat-val">{myRank.total}</div>
-            <div className="home-stat-label">Mes points</div>
-          </div>
-          <div className="home-stat">
-            <div className="home-stat-val" style={{color:aPronostiquer>0?"#ff4d4d":"#7dcc8a"}}>{aPronostiquer}</div>
-            <div className="home-stat-label">À pronostiquer</div>
-          </div>
+          <div className="home-stat"><div className="home-stat-val">#{myRank.rang}</div><div className="home-stat-label">Mon rang</div></div>
+          <div className="home-stat"><div className="home-stat-val">{myRank.total}</div><div className="home-stat-label">Mes points</div></div>
+          <div className="home-stat"><div className="home-stat-val" style={{color:aPronostiquer>0?"#ff4d4d":"#7dcc8a"}}>{aPronostiquer}</div><div className="home-stat-label">À pronostiquer</div></div>
         </div>
       )}
-
       {currentDay && (
         <>
           <div className="section-title" style={{cursor:"pointer"}} onClick={()=>onNavigate("pronostics")}>
@@ -630,33 +617,22 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
             const pred = predictions[m.id];
             const locked = m.status!=="scheduled"||new Date(m.kickoff)<new Date();
             return (
-              <div key={m.id} className="home-match-row" onClick={()=>setSelectedMatch(m)} style={{cursor:"pointer"}}>
-                <div className="home-team home">
-                  <span>{teamName(m.home_team)}</span>
-                  <ClubLogo name={m.home_team} size={22}/>
-                </div>
+              <div key={m.id} className="home-match-row" onClick={()=>setSelectedMatch(m)}>
+                <div className="home-team home"><span>{teamName(m.home_team)}</span><ClubLogo name={m.home_team} size={22}/></div>
                 <div className="home-match-center">
-                  {m.status==="finished" ? (
-                    <div style={{fontFamily:"var(--font-display)",fontSize:"1.1rem",fontWeight:600,color:"var(--gold)"}}>{m.score_home}–{m.score_away}</div>
-                  ) : m.status==="live" ? (
-                    <div style={{color:"#ff4d4d",fontSize:"0.72rem",fontWeight:600}}><span className="live-dot"/>Live</div>
-                  ) : (
-                    <div className="home-match-time">{formatTime(m.kickoff)}</div>
-                  )}
+                  {m.status==="finished" ? <div style={{fontFamily:"var(--font-display)",fontSize:"1.1rem",fontWeight:600,color:"var(--gold)"}}>{m.score_home}–{m.score_away}</div>
+                    : m.status==="live" ? <div style={{color:"#ff4d4d",fontSize:"0.72rem",fontWeight:600}}><span className="live-dot"/>Live</div>
+                    : <div className="home-match-time">{formatTime(m.kickoff)}</div>}
                   {pred && !locked && <div className="home-match-prono">✓ {pred.pred_home}-{pred.pred_away}</div>}
                   {pred && locked && m.status==="finished" && <div className="home-match-prono">{pred.pred_home}-{pred.pred_away} · {pred.points_earned}pts</div>}
                   {!pred && !locked && <div className="home-match-todo">À pronostiquer</div>}
                 </div>
-                <div className="home-team away">
-                  <ClubLogo name={m.away_team} size={22}/>
-                  <span>{teamName(m.away_team)}</span>
-                </div>
+                <div className="home-team away"><ClubLogo name={m.away_team} size={22}/><span>{teamName(m.away_team)}</span></div>
               </div>
             );
           })}
         </>
       )}
-
       {ranking.length>0 && (
         <>
           <div className="section-title" style={{marginTop:24,cursor:"pointer"}} onClick={()=>onNavigate("classement")}>
@@ -677,32 +653,19 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
           </div>
         </>
       )}
-
       {l1Standing.length>0 && (
         <>
           <div className="section-title" style={{marginTop:24}}>Classement Ligue 1</div>
           <div style={{background:"var(--coal)",border:"1px solid rgba(227,6,19,0.1)",borderRadius:"var(--radius)",overflow:"hidden"}}>
             <table className="l1-table">
-              <thead>
-                <tr>
-                  <th style={{width:36}}>#</th>
-                  <th>Club</th>
-                  <th style={{textAlign:"center",width:36}}>J</th>
-                  <th style={{textAlign:"center",width:48}}>Pts</th>
-                </tr>
-              </thead>
+              <thead><tr><th style={{width:36}}>#</th><th>Club</th><th style={{textAlign:"center",width:36}}>J</th><th style={{textAlign:"center",width:48}}>Pts</th></tr></thead>
               <tbody>
                 {l1Standing.map(t=>{
                   const isRennes = t.team.shortName==="Rennes"||t.team.shortName==="Stade Rennais";
                   return (
                     <tr key={t.team.id} className={isRennes?"rennes":""}>
                       <td style={{fontFamily:"var(--font-display)",fontSize:"0.9rem",color:"var(--gold-dim)"}}>{t.position}</td>
-                      <td>
-                        <div style={{display:"flex",alignItems:"center",gap:8}}>
-                          <ClubLogo name={t.team.shortName} size={20}/>
-                          <span style={{fontWeight:isRennes?600:400,color:isRennes?"var(--gold)":"var(--cream)"}}>{teamName(t.team.shortName)}</span>
-                        </div>
-                      </td>
+                      <td><div style={{display:"flex",alignItems:"center",gap:8}}><ClubLogo name={t.team.shortName} size={20}/><span style={{fontWeight:isRennes?600:400,color:isRennes?"var(--gold)":"var(--cream)"}}>{teamName(t.team.shortName)}</span></div></td>
                       <td style={{textAlign:"center",color:"var(--gray)"}}>{t.playedGames}</td>
                       <td style={{textAlign:"center",fontFamily:"var(--font-display)",fontSize:"1rem",fontWeight:600,color:"var(--gold)"}}>{t.points}</td>
                     </tr>
@@ -767,9 +730,9 @@ function PronoCard({ match, prediction, token, onPredicted }) {
   const [away,setAway]     = useState(prediction?.pred_away??"");
   const [saving,setSaving] = useState(false);
   const [msg,setMsg]       = useState("");
-  const [reactions,setReactions]         = useState({});
+  const [reactions,setReactions]             = useState({});
   const [showMatchPronos,setShowMatchPronos] = useState(false);
-  const [showForm,setShowForm]           = useState(false);
+  const [showForm,setShowForm]               = useState(false);
 
   useEffect(()=>{ setHome(prediction?.pred_home??""); setAway(prediction?.pred_away??""); },[prediction]);
 
@@ -980,12 +943,12 @@ function EvolutionChart({ data }) {
 
 // ── Distinctions ──────────────────────────────────────────────────────────────
 const DEFAULT_DISTINCTIONS = [
-  { emoji:"🥇", label:"Champion des Pronos", username:null, detail:"—" },
+  { emoji:"😵", label:"Canari d'Or", username:null, detail:"—" },
+  { emoji:"❤️", label:"Meilleur pronostic SRFC", username:null, detail:"—" },
   { emoji:"🏆", label:"Roi du Score Exact", username:null, detail:"—" },
   { emoji:"⚽", label:"Meilleur · Phase aller", username:null, detail:"—" },
   { emoji:"⚽", label:"Meilleur · Phase retour", username:null, detail:"—" },
-  { emoji:"❤️", label:"Meilleur pronostic SRFC", username:null, detail:"—" },
-  { emoji:"😵", label:"Canari d'Or", username:null, detail:"—" },
+  { emoji:"🔥", label:"Meilleure série", username:null, detail:"—" },
 ];
 
 function DistinctionsScreen({ token }) {
@@ -1001,10 +964,10 @@ function DistinctionsScreen({ token }) {
         {display.map((d,i)=>(
           <div className="distinction-card" key={i}>
             <div className="distinction-emoji">
-  {d.label.includes('Canari')
-    ? <img src="https://crests.football-data.org/543.png" alt="FC Nantes" style={{width:32,height:32,objectFit:"contain"}}/>
-    : d.emoji}
-</div>
+              {d.label.includes("Canari")
+                ? <img src="https://crests.football-data.org/543.png" alt="FC Nantes" style={{width:32,height:32,objectFit:"contain"}}/>
+                : d.emoji}
+            </div>
             <div><div className="distinction-label">{d.label}</div><div className={`distinction-winner ${!d.username?"empty":""}`}>{d.username||"À déterminer"}</div></div>
             <div className="distinction-detail">{d.detail}</div>
           </div>
@@ -1115,34 +1078,97 @@ function RankingScreen({ currentUser, token }) {
   );
 }
 
-const CLUBS_L1 = [
-  "Marseille","PSG","Lyon","Monaco","Lille","Rennes","Nice","RC Lens",
-  "Strasbourg","Brest","Le Havre","Lorient","Angers","Auxerre","Troyes",
-  "Paris FC","Le Mans","Toulouse","Reims"
-];
-
-function ClubSelect({ value, onChange, disabled, exclude=[] }) {
+// ── Bonus saison ──────────────────────────────────────────────────────────────
+function ClubSelect({ value, onChange, disabled }) {
   return (
     <select value={value||""} onChange={e=>onChange(e.target.value)} disabled={disabled}
       style={{width:"100%",padding:"10px 12px",background:"#1a0000",border:"1px solid rgba(227,6,19,0.2)",borderRadius:"4px",color:value?"#f2ead8":"#9a8f85",fontFamily:"'Josefin Sans',sans-serif",fontSize:"0.85rem",outline:"none",cursor:disabled?"default":"pointer"}}>
       <option value="">— Choisir un club —</option>
-      {CLUBS_L1.filter(c=>!exclude.includes(c)||c===value).map(c=>(
-        <option key={c} value={c}>{c}</option>
-      ))}
+      {CLUBS_L1.map(c=><option key={c} value={c}>{c}</option>)}
     </select>
   );
 }
 
+function AllBonusModal({ token }) {
+  const [show, setShow]       = useState(false);
+  const [data, setData]       = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
+
+  const LOCK_DATE = new Date('2026-09-02T21:00:00Z');
+  const isOpen = new Date() >= LOCK_DATE;
+
+  async function handleShow() {
+    setShow(true); setLoading(true);
+    try {
+      const d = await apiCall("/bonus-saison/all", {}, token);
+      setData(d.bonus || []);
+    } catch(e) { setError(e.message); }
+    finally { setLoading(false); }
+  }
+
+  if (!isOpen) return (
+    <div style={{marginTop:16,textAlign:"center",fontSize:"0.72rem",color:"var(--gray)"}}>
+      🔒 Les pronostics de tous les participants seront visibles après le 2 septembre 2026.
+    </div>
+  );
+
+  return (
+    <>
+      <button onClick={handleShow} style={{marginTop:16,width:"100%",padding:"11px",background:"none",border:"1px solid rgba(227,6,19,0.3)",borderRadius:"var(--radius)",color:"var(--gold)",fontFamily:"var(--font-body)",fontSize:"0.75rem",fontWeight:600,letterSpacing:"0.14em",textTransform:"uppercase",cursor:"pointer"}}>
+        👁 Voir les pronostics de tous
+      </button>
+      {show && (
+        <div className="modal-overlay" onClick={()=>setShow(false)}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Pronostics Bonus Saison</div>
+              <button className="modal-close" onClick={()=>setShow(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              {loading ? <div className="spinner"/> : error ? <div style={{color:"#f08080"}}>{error}</div> : (
+                <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                  {data?.map((b,i)=>(
+                    <div key={i} style={{background:"var(--charcoal)",border:"1px solid rgba(227,6,19,0.1)",borderRadius:"var(--radius)",padding:"12px 16px"}}>
+                      <div style={{fontWeight:600,color:"var(--gold)",marginBottom:8,fontSize:"0.85rem",letterSpacing:"0.08em",textTransform:"uppercase"}}>{b.username}</div>
+                      {[
+                        {l:"🏆 Champion", v:b.champion},
+                        {l:"🇪🇺 Euro 1", v:b.euro1},
+                        {l:"🇪🇺 Euro 2", v:b.euro2},
+                        {l:"🇪🇺 Euro 3", v:b.euro3},
+                        {l:"🇪🇺 Euro 4", v:b.euro4},
+                        {l:"⚠️ Barragiste", v:b.barragiste},
+                        {l:"⬇️ 18e", v:b.relegate1},
+                        {l:"⬇️ 17e", v:b.relegate2},
+                        {l:"⚽ Meilleur buteur", v:b.meilleur_buteur},
+                        {l:"❤️ Classement Rennes", v:b.classement_rennes},
+                      ].map((row,j)=>(
+                        <div key={j} style={{display:"flex",justifyContent:"space-between",padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,0.03)",fontSize:"0.75rem"}}>
+                          <span style={{color:"var(--gray)"}}>{row.l}</span>
+                          <span style={{color:"var(--cream)",fontWeight:600}}>{row.v || "—"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function BonusScreen({ token }) {
-  const [bonus, setBonus]   = useState(null);
   const [locked, setLocked] = useState(false);
   const [form, setForm]     = useState({
     champion:"", euro1:"", euro2:"", euro3:"", euro4:"",
     barragiste:"", relegate1:"", relegate2:"",
     meilleur_buteur:"", classement_rennes:""
   });
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg]       = useState("");
+  const [saving, setSaving]     = useState(false);
+  const [msg, setMsg]           = useState("");
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(()=>{
@@ -1174,30 +1200,27 @@ function BonusScreen({ token }) {
     finally { setSaving(false); }
   }
 
-  const euroSelected = [form.euro1,form.euro2,form.euro3,form.euro4].filter(Boolean);
-  const relegSelected = [form.relegate1,form.relegate2].filter(Boolean);
-
   const questions = [
-    { key:"champion", label:"🏆 Champion de Ligue 1", pts:15, type:"club" },
-    { key:"euro1", label:"🇪🇺 1er qualifié européen", pts:10, type:"club" },
-    { key:"euro2", label:"🇪🇺 2e qualifié européen", pts:10, type:"club" },
-    { key:"euro3", label:"🇪🇺 3e qualifié européen", pts:10, type:"club" },
-    { key:"euro4", label:"🇪🇺 4e qualifié européen", pts:10, type:"club" },
-    { key:"barragiste", label:"⚠️ Barragiste", pts:10, type:"club" },
-    { key:"relegate1", label:"⬇️ 18e — Relégué direct", pts:10, type:"club" },
-    { key:"relegate2", label:"⬇️ 17e — Relégué direct", pts:10, type:"club" },
-    { key:"meilleur_buteur", label:"⚽ Meilleur buteur", pts:10, type:"text", placeholder:"Nom du joueur..." },
-    { key:"classement_rennes", label:"❤️ Classement final Rennes (position exacte)", pts:15, type:"number", placeholder:"ex: 7" },
+    { key:"champion",          label:"🏆 Champion de Ligue 1",                         pts:15, type:"club" },
+    { key:"euro1",             label:"🇪🇺 1er qualifié européen",                       pts:10, type:"club" },
+    { key:"euro2",             label:"🇪🇺 2e qualifié européen",                        pts:10, type:"club" },
+    { key:"euro3",             label:"🇪🇺 3e qualifié européen",                        pts:10, type:"club" },
+    { key:"euro4",             label:"🇪🇺 4e qualifié européen",                        pts:10, type:"club" },
+    { key:"barragiste",        label:"⚠️ Barragiste",                                   pts:10, type:"club" },
+    { key:"relegate1",         label:"⬇️ 18e — Relégué direct",                        pts:10, type:"club" },
+    { key:"relegate2",         label:"⬇️ 17e — Relégué direct",                        pts:10, type:"club" },
+    { key:"meilleur_buteur",   label:"⚽ Meilleur buteur",                              pts:10, type:"text",   placeholder:"Nom du joueur..." },
+    { key:"classement_rennes", label:"❤️ Classement final Rennes (position exacte)",   pts:15, type:"number", placeholder:"ex: 7" },
   ];
 
   return (
     <div>
       <div className="bonus-intro">
-        <p>Pronostics de début de saison à soumettre <strong>avant le 2 septembre 2026 à 23h00</strong>. Aucune modification possible après.</p>
+        <p>Pronostics de début de saison à soumettre <strong>avant le 2 septembre 2026 à 23h00</strong>. Modifiables jusqu'à la clôture du mercato.</p>
         <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:12,paddingTop:12,borderTop:"1px solid rgba(255,255,255,0.05)"}}>
           {[{l:"Champion",p:15},{l:"4 qualifiés européens",p:"4×10"},{l:"Barragiste",p:10},{l:"2 relégués",p:"2×10"},{l:"Meilleur buteur",p:10},{l:"Classement Rennes",p:15}].map(b=>(
-            <span key={b.l} style={{display:"flex",alignItems:"center",gap:6,fontSize:"0.68rem",color:"#9a8f85"}}>
-              <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"1rem",color:"#e30613"}}>{b.p}</span>{b.l}
+            <span key={b.l} style={{display:"flex",alignItems:"center",gap:6,fontSize:"0.68rem",color:"var(--gray)"}}>
+              <span style={{fontFamily:"var(--font-display)",fontSize:"1rem",color:"var(--gold)"}}>{b.p}</span>{b.l}
             </span>
           ))}
         </div>
@@ -1206,16 +1229,16 @@ function BonusScreen({ token }) {
       {locked && <div style={{background:"rgba(192,57,43,0.1)",border:"1px solid rgba(192,57,43,0.25)",borderRadius:"4px",padding:"10px 16px",fontSize:"0.78rem",color:"#d07060",marginBottom:16}}>🔒 Les bonus de début de saison sont fermés.</div>}
 
       {questions.map(q=>(
-        <div key={q.key} style={{background:"#1a1a1a",border:`1px solid ${form[q.key]?"rgba(45,106,63,0.35)":"rgba(227,6,19,0.1)"}`,borderRadius:"4px",padding:"14px 18px",marginBottom:8}}>
+        <div key={q.key} style={{background:"var(--coal)",border:`1px solid ${form[q.key]?"rgba(45,106,63,0.35)":"rgba(227,6,19,0.1)"}`,borderRadius:"4px",padding:"14px 18px",marginBottom:8}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-            <div style={{fontSize:"0.78rem",fontWeight:600,color:"#f2ead8"}}>{q.label}</div>
-            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"1.2rem",fontWeight:600,color:"#e30613"}}>{q.pts}<span style={{fontFamily:"'Josefin Sans',sans-serif",fontSize:"0.6rem",color:"#9a8f85",marginLeft:2}}>pts</span></div>
+            <div style={{fontSize:"0.78rem",fontWeight:600,color:"var(--cream)"}}>{q.label}</div>
+            <div style={{fontFamily:"var(--font-display)",fontSize:"1.2rem",fontWeight:600,color:"var(--gold)"}}>{q.pts}<span style={{fontFamily:"var(--font-body)",fontSize:"0.6rem",color:"var(--gray)",marginLeft:2}}>pts</span></div>
           </div>
           {q.type==="club" && <ClubSelect value={form[q.key]} onChange={v=>setForm(f=>({...f,[q.key]:v}))} disabled={locked}/>}
           {q.type==="text" && <input value={form[q.key]} onChange={e=>setForm(f=>({...f,[q.key]:e.target.value}))} disabled={locked} placeholder={q.placeholder}
-            style={{width:"100%",padding:"10px 12px",background:"#1a0000",border:"1px solid rgba(227,6,19,0.2)",borderRadius:"4px",color:"#f2ead8",fontFamily:"'Josefin Sans',sans-serif",fontSize:"0.85rem",outline:"none"}}/>}
+            style={{width:"100%",padding:"10px 12px",background:"#1a0000",border:"1px solid rgba(227,6,19,0.2)",borderRadius:"4px",color:"var(--cream)",fontFamily:"var(--font-body)",fontSize:"0.85rem",outline:"none"}}/>}
           {q.type==="number" && <input type="number" min="1" max="18" value={form[q.key]} onChange={e=>setForm(f=>({...f,[q.key]:e.target.value}))} disabled={locked} placeholder={q.placeholder}
-            style={{width:"100%",padding:"10px 12px",background:"#1a0000",border:"1px solid rgba(227,6,19,0.2)",borderRadius:"4px",color:"#f2ead8",fontFamily:"'Josefin Sans',sans-serif",fontSize:"0.85rem",outline:"none"}}/>}
+            style={{width:"100%",padding:"10px 12px",background:"#1a0000",border:"1px solid rgba(227,6,19,0.2)",borderRadius:"4px",color:"var(--cream)",fontFamily:"var(--font-body)",fontSize:"0.85rem",outline:"none"}}/>}
         </div>
       ))}
 
@@ -1223,7 +1246,7 @@ function BonusScreen({ token }) {
         <div style={{marginTop:16}}>
           {msg && <div style={{marginBottom:10,fontSize:"0.78rem",color:msg.startsWith("✅")?"#7dcc8a":"#f08080"}}>{msg}</div>}
           <button onClick={handleSave} disabled={saving}
-            style={{width:"100%",padding:"13px",background:"#e30613",color:"#0d0d0d",border:"none",borderRadius:"4px",fontFamily:"'Josefin Sans',sans-serif",fontSize:"0.75rem",fontWeight:600,letterSpacing:"0.18em",textTransform:"uppercase",cursor:"pointer"}}>
+            style={{width:"100%",padding:"13px",background:"var(--gold)",color:"var(--obsidian)",border:"none",borderRadius:"4px",fontFamily:"var(--font-body)",fontSize:"0.75rem",fontWeight:600,letterSpacing:"0.18em",textTransform:"uppercase",cursor:"pointer"}}>
             {saving?"Enregistrement…":confirmed?"Mettre à jour mes pronostics":"Valider mes pronostics bonus"}
           </button>
         </div>
@@ -1252,8 +1275,6 @@ function HistoriqueScreen() {
       <div style={{background:"var(--coal)",border:"1px solid rgba(227,6,19,0.15)",borderRadius:"var(--radius)",padding:"14px 18px",marginBottom:20,fontSize:"0.78rem",color:"var(--gray)",lineHeight:1.7}}>
         <strong style={{color:"var(--cream)"}}>Vainqueur :</strong> 🇪🇸 Espagne · <strong style={{color:"var(--cream)"}}>Meilleur buteur :</strong> Kylian Mbappé 🇫🇷
       </div>
-
-      {/* Podium */}
       <div className="podium" style={{marginBottom:24}}>
         {[CDM_2026[1], CDM_2026[0], CDM_2026[2]].map(p=>(
           <div key={p.username} className={`podium-card rank-${p.rang}`}>
@@ -1265,8 +1286,6 @@ function HistoriqueScreen() {
           </div>
         ))}
       </div>
-
-      {/* Classement complet */}
       <div className="section-title">Classement complet</div>
       <div className="rank-list">
         {CDM_2026.map((row,i)=>(
@@ -1280,8 +1299,6 @@ function HistoriqueScreen() {
           </div>
         ))}
       </div>
-
-      {/* Distinctions */}
       <div className="section-title" style={{marginTop:24}}>Distinctions CDM 2026</div>
       <div className="distinctions-grid">
         {[
@@ -1297,8 +1314,6 @@ function HistoriqueScreen() {
           </div>
         ))}
       </div>
-
-      {/* Saisons L1 précédentes */}
       <div className="section-title" style={{marginTop:24}}>Palmarès Pronos Socios SRFC</div>
       <div style={{background:"var(--coal)",border:"1px solid rgba(227,6,19,0.1)",borderRadius:"var(--radius)",overflow:"hidden"}}>
         <table style={{width:"100%",borderCollapse:"collapse"}}>
@@ -1330,8 +1345,9 @@ function HistoriqueScreen() {
       </div>
     </div>
   );
+}
 
-}// ── App ───────────────────────────────────────────────────────────────────────
+// ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user,setUser]           = useState(()=>{ try{return JSON.parse(localStorage.getItem('pronos_user'));}catch(e){return null;} });
   const [token,setToken]         = useState(()=>localStorage.getItem('pronos_token')||null);

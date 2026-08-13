@@ -1118,7 +1118,7 @@ function RankingScreen({ currentUser, token }) {
 const CLUBS_L1 = [
   "Marseille","PSG","Lyon","Monaco","Lille","Rennes","Nice","RC Lens",
   "Strasbourg","Brest","Le Havre","Lorient","Angers","Auxerre","Troyes",
-  "Paris FC","Le Mans","Toulouse","Nantes","Reims"
+  "Paris FC","Le Mans","Toulouse","Reims"
 ];
 
 function ClubSelect({ value, onChange, disabled, exclude=[] }) {
@@ -1383,7 +1383,6 @@ export default function App() {
                   <button className={`tab-main ${tab==="pronostics"?"active":""}`} onClick={()=>setTab("pronostics")}>Pronostics</button>
                   <button className={`tab-main ${tab==="bonus"?"active":""}`} onClick={()=>setTab("bonus")}>Bonus</button>
                   <button className={`tab-main ${tab==="classement"?"active":""}`} onClick={()=>setTab("classement")}>Classement</button>
-                  <button className={`tab-main ${tab==="historique"?"active":""}`} onClick={()=>setTab("historique")}>Historique</button>
                 </div>
                 {tab==="accueil"    && <HomeScreen matches={matches} token={token} currentUser={user} onNavigate={setTab}/>}
                 {tab==="resultats"  && <ResultsScreen matches={matches} loading={loading}/>}
@@ -1398,6 +1397,9 @@ export default function App() {
 
         <footer className="footer">
           <span style={{color:"var(--gray)",fontSize:"0.68rem",letterSpacing:"0.1em",textTransform:"uppercase"}}>🔴⚫ Socios SRFC · Saison 2026-2027</span>
+          <button onClick={()=>setTab("historique")} style={{background:"none",border:"none",cursor:"pointer",color:"var(--gray)",fontSize:"0.65rem",fontFamily:"var(--font-body)",letterSpacing:"0.1em",textTransform:"uppercase",marginTop:8,display:"block",margin:"8px auto 0",textDecoration:"underline"}}>
+            📜 Historique & Palmarès
+          </button>
         </footer>
       </div>
     </>

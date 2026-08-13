@@ -1178,16 +1178,16 @@ function BonusScreen({ token }) {
   const relegSelected = [form.relegate1,form.relegate2].filter(Boolean);
 
   const questions = [
-    { key:"champion", label:"🏆 Champion de Ligue 1", pts:20, type:"club" },
+    { key:"champion", label:"🏆 Champion de Ligue 1", pts:15, type:"club" },
     { key:"euro1", label:"🇪🇺 1er qualifié européen", pts:10, type:"club" },
     { key:"euro2", label:"🇪🇺 2e qualifié européen", pts:10, type:"club" },
     { key:"euro3", label:"🇪🇺 3e qualifié européen", pts:10, type:"club" },
     { key:"euro4", label:"🇪🇺 4e qualifié européen", pts:10, type:"club" },
-    { key:"barragiste", label:"⚠️ Barragiste", pts:15, type:"club" },
+    { key:"barragiste", label:"⚠️ Barragiste", pts:10, type:"club" },
     { key:"relegate1", label:"⬇️ 1er relégué", pts:10, type:"club" },
     { key:"relegate2", label:"⬇️ 2e relégué", pts:10, type:"club" },
-    { key:"meilleur_buteur", label:"⚽ Meilleur buteur", pts:20, type:"text", placeholder:"Nom du joueur..." },
-    { key:"classement_rennes", label:"❤️ Classement final Rennes (position exacte)", pts:5, type:"number", placeholder:"ex: 7" },
+    { key:"meilleur_buteur", label:"⚽ Meilleur buteur", pts:10, type:"text", placeholder:"Nom du joueur..." },
+    { key:"classement_rennes", label:"❤️ Classement final Rennes (position exacte)", pts:15, type:"number", placeholder:"ex: 7" },
   ];
 
   return (
@@ -1195,7 +1195,7 @@ function BonusScreen({ token }) {
       <div className="bonus-intro">
         <p>Pronostics de début de saison à soumettre <strong>avant le 22 août 2026 à 19h00</strong>. Aucune modification possible après.</p>
         <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:12,paddingTop:12,borderTop:"1px solid rgba(255,255,255,0.05)"}}>
-          {[{l:"Champion",p:20},{l:"4 qualifiés européens",p:"4×10"},{l:"Barragiste",p:15},{l:"2 relégués",p:"2×10"},{l:"Meilleur buteur",p:20},{l:"Classement Rennes",p:5}].map(b=>(
+          {[{l:"Champion",p:15},{l:"4 qualifiés européens",p:"4×10"},{l:"Barragiste",p:10},{l:"2 relégués",p:"2×10"},{l:"Meilleur buteur",p:10},{l:"Classement Rennes",p:15}].map(b=>(
             <span key={b.l} style={{display:"flex",alignItems:"center",gap:6,fontSize:"0.68rem",color:"#9a8f85"}}>
               <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"1rem",color:"#e30613"}}>{b.p}</span>{b.l}
             </span>

@@ -91,24 +91,7 @@ router.get('/distinctions', (req, res) => {
       }
     }
 
-    // Plus forte progression aller → retour
-    let bestProgression = { username: null, progression: -Infinity };
-    for (const user of users) {
-      const r1 = db.prepare(`
-        SELECT COALESCE(SUM(p.points_earned),0) AS pts FROM predictions p
-        JOIN matches m ON m.id = p.match_id
-        WHERE p.user_id = ? AND m.matchday <= 17 AND m.status = 'finished'
-      `).get(user.id);
-      const r2 = db.prepare(`
-        SELECT COALESCE(SUM(p.points_earned),0) AS pts FROM predictions p
-        JOIN matches m ON m.id = p.match_id
-        WHERE p.user_id = ? AND m.matchday >= 18 AND m.status = 'finished'
-      `).get(user.id);
-      const prog = (r2?.pts || 0) - (r1?.pts || 0);
-      if (prog > bestProgression.progression) {
-        bestProgression = { username: user.username, progression: prog };
-      }
-    }
+    
 
     const distinctions = [
       { emoji:"😵", label:"Canari d'Or",                      username: lanterne?.username,        detail: `${lanterne?.total} pts` },
@@ -116,7 +99,7 @@ router.get('/distinctions', (req, res) => {
       { emoji:"🏆", label:"Roi du Score Exact",               username: roiExact?.username,        detail: `${roiExact?.scores_exacts} exacts` },
       { emoji:"⚽", label:"Meilleur · Phase aller (J1-J17)",  username: phaseAller?.username,      detail: `${phaseAller?.pts || 0} pts` },
       { emoji:"⚽", label:"Meilleur · Phase retour (J18-J34)",username: phaseRetour?.username,     detail: `${phaseRetour?.pts || 0} pts` },
-      { emoji:"📈", label:"Plus forte progression",           username: bestProgression?.username, detail: bestProgression?.progression > 0 ? `+${bestProgression.progression} pts` : "—" },
+      
       { emoji:"🔥", label:"Meilleure série de journées",      username: bestStreak?.username,      detail: `${bestStreak?.streak} journée${bestStreak?.streak > 1 ? 's' : ''}` },
     ];
 

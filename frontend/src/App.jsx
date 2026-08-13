@@ -1193,7 +1193,7 @@ function BonusScreen({ token }) {
   return (
     <div>
       <div className="bonus-intro">
-        <p>Pronostics de début de saison à soumettre <strong>avant le 22 août 2026 à 19h00</strong>. Aucune modification possible après.</p>
+        <p>Pronostics de début de saison à soumettre <strong>avant le 2 septembre 2026 à 23h00</strong>. Aucune modification possible après.</p>
         <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:12,paddingTop:12,borderTop:"1px solid rgba(255,255,255,0.05)"}}>
           {[{l:"Champion",p:15},{l:"4 qualifiés européens",p:"4×10"},{l:"Barragiste",p:10},{l:"2 relégués",p:"2×10"},{l:"Meilleur buteur",p:10},{l:"Classement Rennes",p:15}].map(b=>(
             <span key={b.l} style={{display:"flex",alignItems:"center",gap:6,fontSize:"0.68rem",color:"#9a8f85"}}>

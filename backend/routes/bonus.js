@@ -2,7 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const db      = require('../database');
 
-const LOCK_DATE = new Date('2026-08-22T17:00:00Z'); // Veille du 1er match
+const LOCK_DATE = new Date('2026-09-02T21:00:00Z'); // Veille du 1er match
 
 // GET /api/bonus-saison — charger les réponses de l'utilisateur
 router.get('/bonus-saison', (req, res) => {

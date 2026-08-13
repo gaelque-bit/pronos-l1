@@ -44,4 +44,13 @@ router.post('/bonus-saison', (req, res) => {
   res.json({ message: 'Bonus saison enregistré.' });
 });
 
+// GET /api/bonus-saison/all — visible après clôture
+router.get("/bonus-saison/all", (req, res) => {
+  const LOCK_DATE = new Date("2026-09-02T21:00:00Z");
+  if (new Date() < LOCK_DATE)
+    return res.status(403).json({ error: "Les pronostics bonus seront visibles après le 2 septembre." });
+  const all = db.prepare(`SELECT u.username, bs.* FROM bonus_saison bs JOIN users u ON u.id = bs.user_id ORDER BY u.username ASC`).all();
+  res.json({ bonus: all, locked: false });
+});
+
 module.exports = router;

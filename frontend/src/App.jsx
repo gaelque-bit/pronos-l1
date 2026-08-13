@@ -1228,6 +1228,7 @@ function BonusScreen({ token }) {
           </button>
         </div>
       )}
+      <AllBonusModal token={token}/>
     </div>
   );
 }

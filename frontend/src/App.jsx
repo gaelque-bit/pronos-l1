@@ -1348,14 +1348,14 @@ function HistoriqueScreen() {
 }
 
 // ── Actu ──────────────────────────────────────────────────────────────────────
-function ActuScreen() {
+function ActuScreen({ token }) {
   const [l1, setL1]               = useState([]);
   const [srfc, setSrfc]           = useState([]);
   const [loading, setLoading]     = useState(true);
   const [activeTab, setActiveTab] = useState("srfc");
 
   useEffect(()=>{
-    apiCall("/actu").then(d=>{
+    apiCall("/actu", {}, token).then(d=>{
       setL1(d.l1||[]);
       setSrfc(d.srfc||[]);
     }).catch(console.error).finally(()=>setLoading(false));
@@ -1451,7 +1451,7 @@ export default function App() {
                 {tab==="pronostics" && <PredictionsScreen matches={matches} loading={loading} token={token}/>}
                 {tab==="bonus"      && <BonusScreen token={token}/>}
                 {tab==="classement" && <RankingScreen currentUser={user} token={token}/>}
-                {tab==="historique" && <HistoriqueScreen/>}{tab==="actu" && <ActuScreen/>}
+                {tab==="historique" && <HistoriqueScreen/>}{tab==="actu" && <ActuScreen token={token}/>}
               </>
             )}
           </>

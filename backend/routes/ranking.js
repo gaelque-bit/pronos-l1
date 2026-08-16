@@ -156,4 +156,22 @@ router.get('/l1standings', async (req, res) => {
   }
 });
 
+// GET /api/actu — actualités Ligue 1 + Stade Rennais
+router.get('/actu', async (req, res) => {
+  try {
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const KEY = process.env.NEWS_API_KEY;
+    const [l1Res, srfcRes] = await Promise.all([
+      fetch(`https://newsapi.org/v2/everything?q=Ligue+1&language=fr&sortBy=publishedAt&pageSize=10&apiKey=${KEY}`),
+      fetch(`https://newsapi.org/v2/everything?q=%22Stade+Rennais%22&language=fr&sortBy=publishedAt&pageSize=10&apiKey=${KEY}`)
+    ]);
+    const [l1Data, srfcData] = await Promise.all([l1Res.json(), srfcRes.json()]);
+    res.json({
+      l1: (l1Data.articles || []).slice(0,8),
+      srfc: (srfcData.articles || []).slice(0,8),
+    });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 module.exports = router;

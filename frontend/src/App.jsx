@@ -1347,6 +1347,51 @@ function HistoriqueScreen() {
   );
 }
 
+// ── Actu ──────────────────────────────────────────────────────────────────────
+function ActuScreen() {
+  const [l1, setL1]               = useState([]);
+  const [srfc, setSrfc]           = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [activeTab, setActiveTab] = useState("srfc");
+
+  useEffect(()=>{
+    apiCall("/actu").then(d=>{
+      setL1(d.l1||[]);
+      setSrfc(d.srfc||[]);
+    }).catch(console.error).finally(()=>setLoading(false));
+  },[]);
+
+  const articles = activeTab==="srfc" ? srfc : l1;
+
+  return (
+    <div>
+      <div className="tabs-sub">
+        <button className={`tab-sub ${activeTab==="srfc"?"active":""}`} onClick={()=>setActiveTab("srfc")}>❤️ Stade Rennais</button>
+        <button className={`tab-sub ${activeTab==="l1"?"active":""}`} onClick={()=>setActiveTab("l1")}>⚽ Ligue 1</button>
+      </div>
+      {loading ? <div className="spinner"/> : articles.length===0 ? (
+        <div className="empty"><div className="empty-icon">📰</div>Aucune actualité disponible.</div>
+      ) : (
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {articles.map((a,i)=>(
+            <a key={i} href={a.url} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
+              <div style={{background:"var(--coal)",border:"1px solid rgba(227,6,19,0.1)",borderRadius:"var(--radius)",padding:"14px 16px",display:"grid",gridTemplateColumns:"1fr auto",gap:12,alignItems:"center"}}>
+                <div>
+                  <div style={{fontSize:"0.6rem",color:"var(--gray)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4}}>
+                    {a.source?.name} · {new Date(a.publishedAt).toLocaleDateString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}
+                  </div>
+                  <div style={{fontSize:"0.85rem",fontWeight:600,color:"var(--cream)",lineHeight:1.4,marginBottom:4}}>{a.title}</div>
+                  {a.description && <div style={{fontSize:"0.72rem",color:"var(--gray)",lineHeight:1.5}}>{a.description?.slice(0,120)}…</div>}
+                </div>
+                {a.urlToImage && <img src={a.urlToImage} alt="" style={{width:72,height:72,objectFit:"cover",borderRadius:"var(--radius)",flexShrink:0}} onError={e=>e.target.style.display='none'}/>}
+              </div>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 // ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user,setUser]           = useState(()=>{ try{return JSON.parse(localStorage.getItem('pronos_user'));}catch(e){return null;} });
@@ -1399,14 +1444,14 @@ export default function App() {
                   <button className={`tab-main ${tab==="resultats"?"active":""}`} onClick={()=>setTab("resultats")}>Résultats</button>
                   <button className={`tab-main ${tab==="pronostics"?"active":""}`} onClick={()=>setTab("pronostics")}>Pronostics</button>
                   <button className={`tab-main ${tab==="bonus"?"active":""}`} onClick={()=>setTab("bonus")}>Bonus</button>
-                  <button className={`tab-main ${tab==="classement"?"active":""}`} onClick={()=>setTab("classement")}>Classement</button>
+                  <button className={`tab-main ${tab==="classement"?"active":""}`} onClick={()=>setTab("classement")}>Classement</button><button className={`tab-main ${tab==="actu"?"active":""}`} onClick={()=>setTab("actu")}>Actu</button>
                 </div>
                 {tab==="accueil"    && <HomeScreen matches={matches} token={token} currentUser={user} onNavigate={setTab}/>}
                 {tab==="resultats"  && <ResultsScreen matches={matches} loading={loading}/>}
                 {tab==="pronostics" && <PredictionsScreen matches={matches} loading={loading} token={token}/>}
                 {tab==="bonus"      && <BonusScreen token={token}/>}
                 {tab==="classement" && <RankingScreen currentUser={user} token={token}/>}
-                {tab==="historique" && <HistoriqueScreen/>}
+                {tab==="historique" && <HistoriqueScreen/>}{tab==="actu" && <ActuScreen/>}
               </>
             )}
           </>

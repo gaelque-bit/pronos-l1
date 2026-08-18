@@ -168,7 +168,13 @@ router.get('/actu', async (req, res) => {
     const [l1Data, srfcData] = await Promise.all([l1Res.json(), srfcRes.json()]);
     res.json({
       l1: (l1Data.articles || []).slice(0,8),
-      srfc: (srfcData.articles || []).slice(0,8),
+      srfc: (srfcData.articles || [])
+  .filter(a => a.title && (
+    a.title.toLowerCase().includes('rennais') || 
+    a.title.toLowerCase().includes('rennes') ||
+    a.title.toLowerCase().includes('roazhon')
+  ))
+  .slice(0,8),
     });
   } catch(e) {
     res.status(500).json({ error: e.message });

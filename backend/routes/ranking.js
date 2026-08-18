@@ -162,8 +162,8 @@ router.get('/actu', async (req, res) => {
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     const KEY = process.env.NEWS_API_KEY;
     const [l1Res, srfcRes] = await Promise.all([
-     fetch(`https://newsapi.org/v2/everything?q=%22Ligue+1%22+football+France&language=fr&sortBy=publishedAt&pageSize=10&apiKey=${KEY}`)
-      fetch(`https://newsapi.org/v2/everything?q=%22Stade+Rennais%22+Ligue+1&language=fr&sortBy=publishedAt&pageSize=10&apiKey=${KEY}`)
+     fetch(`https://newsapi.org/v2/everything?q=%22Ligue+1%22+football+France&language=fr&sortBy=publishedAt&pageSize=10&apiKey=${KEY}`),
+      fetch(`https://newsapi.org/v2/everything?q=%22Stade+Rennais%22+Ligue+1&language=fr&sortBy=publishedAt&pageSize=10&apiKey=${KEY}`),
     ]);
     const [l1Data, srfcData] = await Promise.all([l1Res.json(), srfcRes.json()]);
     res.json({

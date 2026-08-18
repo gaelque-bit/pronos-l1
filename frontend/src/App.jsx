@@ -1202,10 +1202,10 @@ function BonusScreen({ token }) {
 
   const questions = [
     { key:"champion",          label:"🏆 Champion de Ligue 1",                         pts:15, type:"club" },
-    { key:"euro1",             label:"🇪🇺 1er qualifié européen",                       pts:10, type:"club" },
-    { key:"euro2",             label:"🇪🇺 2e qualifié européen",                        pts:10, type:"club" },
-    { key:"euro3",             label:"🇪🇺 3e qualifié européen",                        pts:10, type:"club" },
-    { key:"euro4",             label:"🇪🇺 4e qualifié européen",                        pts:10, type:"club" },
+    { key:"euro1", label:"🇪🇺 2e du classement", pts:10, type:"club" },
+    { key:"euro2", label:"🇪🇺 3e du classement", pts:10, type:"club" },
+    { key:"euro3", label:"🇪🇺 4e du classement", pts:10, type:"club" },
+    { key:"euro4", label:"🇪🇺 5e du classement", pts:10, type:"club" },
     { key:"barragiste",        label:"⚠️ Barragiste",                                   pts:10, type:"club" },
     { key:"relegate1",         label:"⬇️ 18e — Relégué direct",                        pts:10, type:"club" },
     { key:"relegate2",         label:"⬇️ 17e — Relégué direct",                        pts:10, type:"club" },
@@ -1444,7 +1444,7 @@ export default function App() {
                   <button className={`tab-main ${tab==="resultats"?"active":""}`} onClick={()=>setTab("resultats")}>Résultats</button>
                   <button className={`tab-main ${tab==="pronostics"?"active":""}`} onClick={()=>setTab("pronostics")}>Pronostics</button>
                   <button className={`tab-main ${tab==="bonus"?"active":""}`} onClick={()=>setTab("bonus")}>Bonus</button>
-                  <button className={`tab-main ${tab==="classement"?"active":""}`} onClick={()=>setTab("classement")}>Classement</button><button className={`tab-main ${tab==="actu"?"active":""}`} onClick={()=>setTab("actu")}>Actu</button>
+                  <button className={`tab-main ${tab==="classement"?"active":""}`} onClick={()=>setTab("classement")}>Classement</button>
                 </div>
                 {tab==="accueil"    && <HomeScreen matches={matches} token={token} currentUser={user} onNavigate={setTab}/>}
                 {tab==="resultats"  && <ResultsScreen matches={matches} loading={loading}/>}
@@ -1461,6 +1461,9 @@ export default function App() {
           <span style={{color:"var(--gray)",fontSize:"0.68rem",letterSpacing:"0.1em",textTransform:"uppercase"}}>🔴⚫ Socios SRFC · Saison 2026-2027</span>
           <button onClick={()=>setTab("historique")} style={{background:"none",border:"none",cursor:"pointer",color:"var(--gray)",fontSize:"0.65rem",fontFamily:"var(--font-body)",letterSpacing:"0.1em",textTransform:"uppercase",marginTop:8,display:"block",margin:"8px auto 0",textDecoration:"underline"}}>
             📜 Historique & Palmarès
+          </button>
+          <button onClick={()=>setTab("actu")} style={{background:"none",border:"none",cursor:"pointer",color:"var(--gray)",fontSize:"0.65rem",fontFamily:"var(--font-body)",letterSpacing:"0.1em",textTransform:"uppercase",display:"block",margin:"4px auto 0",textDecoration:"underline"}}>
+            📰 Actualités
           </button>
         </footer>
       </div>

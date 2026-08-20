@@ -5,6 +5,9 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL     = 'onboarding@resend.dev';
 
+// Crée la table si elle n'existe pas
+db.exec('CREATE TABLE IF NOT EXISTS reminders_sent (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, matchday INTEGER NOT NULL, sent_at DATETIME DEFAULT (datetime("now")), UNIQUE(user_id, matchday))');
+
 async function sendEmail(to, subject, html) {
   if (!RESEND_API_KEY) { console.log('RESEND_API_KEY non definie'); return; }
   const res = await fetch('https://api.resend.com/emails', {
@@ -39,6 +42,10 @@ async function sendReminders() {
       const users = db.prepare("SELECT id, username, email FROM users WHERE role = 'user' AND email IS NOT NULL").all();
 
       for (const user of users) {
+        // Vérifie si le rappel a déjà été envoyé
+        const alreadySent = db.prepare('SELECT id FROM reminders_sent WHERE user_id = ? AND matchday = ?').get(user.id, matchday);
+        if (alreadySent) { console.log('   Deja envoye a ' + user.username + ' pour J' + matchday); continue; }
+
         const pronos = db.prepare(
           "SELECT COUNT(*) as n FROM predictions p JOIN matches m ON m.id = p.match_id WHERE p.user_id = ? AND m.matchday = ?"
         ).get(user.id, matchday);
@@ -51,7 +58,10 @@ async function sendReminders() {
           'Rappel - Journee ' + matchday + ' de Ligue 1 dans 48h !',
           '<div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0d0d0d;color:#f2ead8;padding:24px;"><h1 style="color:#e30613;">SRFC Pronos L1</h1><p>Bonjour ' + user.username + '</p><p>La Journee ' + matchday + ' commence dans 48h. Il te reste ' + missing + ' pronostic(s) a saisir.</p><a href="https://pronos-l1-production.up.railway.app" style="background:#e30613;color:#0d0d0d;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:600;display:inline-block;margin-top:16px;">Pronostiquer</a></div>'
         );
-        console.log('   Email envoye a ' + user.username);
+
+        // Marque comme envoyé
+        db.prepare('INSERT OR IGNORE INTO reminders_sent (user_id, matchday) VALUES (?, ?)').run(user.id, matchday);
+        console.log('   Email envoye a ' + user.username + ' pour J' + matchday);
       }
     }
   } catch(err) {

@@ -21,18 +21,38 @@ async function sendReminders() {
   console.log('[' + new Date().toISOString() + '] Verification rappels...');
   try {
     const now = new Date();
-    const in48h = new Date(now.getTime() + 48 * 60 *    const in48h = new Date(now.getTime() + 48 * 60 *    const60    const in48h = new Date(now.getTitchdays = db.prepare(
-      "SELECT DI      "SELECT DI      "SELECT DI      "SELECT DI      "SELECT DI      "SELECT DI      "SEL
+    const in48h = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+    const in47h = new Date(now.getTime() + 47 * 60 * 60 * 1000);
+
+    const upcomingMatchdays = db.prepare(
+      "SELECT DISTINCT matchday FROM matches WHERE status = 'scheduled' AND kickoff >= ? AND kickoff <= ?"
     ).all(in47h.toISOString(), in48h.toISOString());
 
     if (upcomingMatchdays.length === 0) {
-                                                  8h                                                  8h                        nst matchday = row.matchday;
-      const matchesOfDay = db.prep      const matche matches WHERE matchday = ? AND status = 'scheduled'").all(matchday);
-      const users = db.prepare("SELECT id, username, email FROM users WHERE role = 'user' AND email IS       const users = db.prepare(e.      const users = db.prepare("SELECT id, username, email FROM use     for (const user of users) {
-        const pronos        const pronos        const pronos        const pronos        const phe       m        const pronosRE p.use        const pronos        const pronos        const pronos        const pronos        const phe       m        const pronosRE p.use        const pronos        const pro
+      console.log('   Aucune journee dans les 47-48h');
+      return;
+    }
 
-                                                                                                         ns 48h !',
-          '<div style="font-family:sans-serif;          '<div style="font-family:sansd:#0d0d0d;color:#f2ead8;padding:24px;border-radius:8px;"><div style="text-align:center;margin-bottom:20px;"><img src="https://crests.football-data.org/529.png" width="60" alt="SRFC"/><h1 style="color:#e30613;">SRFC Pronos L1</h1></div><p>Bonjour <strong>' + user.username + '</stron          '<div style="font-family:sans-serif;          '<div style="font-family:sansd:#0d0d0d;color:#f2ead8;padding:24px;border-radius:8px;"><div style="text-align:center;margin-bottom:20px;"><img src="https://crests.football-data.orno          '<div style="font-family:sans-serif;          '<div style="font-family:sansd:#0d0d0d;color:#f2ead8;padding:24px;border-radius:8px;"><div style="text-align:center;margin-bottom:20px;"><img src="https://crests.football-data.org/529.png" width="60" alt="SRFC"/><h1 style="color:#e30613;">SRFC Pr></          '<div style="font-family:sans-serif;          '<div style="font-family:sansd:#0d0d0d;color:#f2ead8;paddi}
+    for (const row of upcomingMatchdays) {
+      const matchday = row.matchday;
+      const matchesOfDay = db.prepare("SELECT * FROM matches WHERE matchday = ? AND status = 'scheduled'").all(matchday);
+      const users = db.prepare("SELECT id, username, email FROM users WHERE role = 'user' AND email IS NOT NULL").all();
+
+      for (const user of users) {
+        const pronos = db.prepare(
+          "SELECT COUNT(*) as n FROM predictions p JOIN matches m ON m.id = p.match_id WHERE p.user_id = ? AND m.matchday = ?"
+        ).get(user.id, matchday);
+
+        const missing = matchesOfDay.length - (pronos ? pronos.n : 0);
+        if (missing <= 0) continue;
+
+        await sendEmail(
+          user.email,
+          'Rappel - Journee ' + matchday + ' de Ligue 1 dans 48h !',
+          '<div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0d0d0d;color:#f2ead8;padding:24px;"><h1 style="color:#e30613;">SRFC Pronos L1</h1><p>Bonjour ' + user.username + '</p><p>La Journee ' + matchday + ' commence dans 48h. Il te reste ' + missing + ' pronostic(s) a saisir.</p><a href="https://pronos-l1-production.up.railway.app" style="background:#e30613;color:#0d0d0d;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:600;display:inline-block;margin-top:16px;">Pronostiquer</a></div>'
+        );
+        console.log('   Email envoye a ' + user.username);
+      }
     }
   } catch(err) {
     console.error('Erreur sendReminders :', err.message);

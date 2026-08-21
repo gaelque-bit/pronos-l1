@@ -9,14 +9,20 @@ const FROM_EMAIL     = 'onboarding@resend.dev';
 db.exec('CREATE TABLE IF NOT EXISTS reminders_sent (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, matchday INTEGER NOT NULL, sent_at DATETIME DEFAULT (datetime("now")), UNIQUE(user_id, matchday))');
 
 async function sendEmail(to, subject, html) {
-  if (!RESEND_API_KEY) { console.log('RESEND_API_KEY non definie'); return; }
-  const res = await fetch('https://api.resend.com/emails', {
+  const KEY = process.env.BREVO_API_KEY;
+  if (!KEY) { console.log('BREVO_API_KEY non definie'); return; }
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + RESEND_API_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: FROM_EMAIL, to, subject, html }),
+    headers: { 'api-key': KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sender: { name: 'SRFC Pronos L1', email: 'gael.quemerais@gmail.com' },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
   });
   const data = await res.json();
-  if (!res.ok) console.error('Resend error:', JSON.stringify(data));
+  if (!res.ok) console.error('Brevo error:', JSON.stringify(data));
   return data;
 }
 

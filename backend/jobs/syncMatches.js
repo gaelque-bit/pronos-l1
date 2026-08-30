@@ -81,16 +81,18 @@ async function syncMatches() {
         // Utilise le matchday fixe pour la phase finale
         const matchday = match.matchday || null; // L1
 
-        upsert.run({
-          api_id:     match.id,
-          home_team:  match.homeTeam.shortName || match.homeTeam.name,
-          away_team:  match.awayTeam.shortName || match.awayTeam.name,
-          kickoff:    match.utcDate,
+                upsert.run({
+          api_id:           match.id,
+          home_team:        match.homeTeam.shortName || match.homeTeam.name,
+          away_team:        match.awayTeam.shortName || match.awayTeam.name,
+          home_team_api_id: match.homeTeam.id,
+          away_team_api_id: match.awayTeam.id,
+          kickoff:          match.utcDate,
           status,
           score_home,
           score_away,
-          stage:      match.stage,
-          group_name: match.group || null,
+          stage:            match.stage,
+          group_name:       match.group || null,
           matchday,
         });
 

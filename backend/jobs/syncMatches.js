@@ -50,16 +50,16 @@ async function syncMatches() {
     console.log(`   → ${matches.length} matchs reçus`);
 
     const upsert = db.prepare(`
-      INSERT INTO matches (api_id, home_team, away_team, kickoff, status, score_home, score_away, stage, group_name, matchday)
-      VALUES (@api_id, @home_team, @away_team, @kickoff, @status, @score_home, @score_away, @stage, @group_name, @matchday)
-      ON CONFLICT(api_id) DO UPDATE SET
-        status     = excluded.status,
-        score_home = excluded.score_home,
-        score_away = excluded.score_away,
-        stage      = excluded.stage,
-        group_name = excluded.group_name,
-        matchday   = excluded.matchday
-    `);
+  INSERT INTO matches (api_id, home_team, away_team, home_team_api_id, away_team_api_id, kickoff, status, score_home, score_away, stage, matchday)
+  VALUES (@api_id, @home_team, @away_team, @home_team_api_id, @away_team_api_id, @kickoff, @status, @score_home, @score_away, @stage, @matchday)
+  ON CONFLICT(api_id) DO UPDATE SET
+    status           = excluded.status,
+    score_home       = CASE WHEN excluded.status = 'finished' THEN excluded.score_home ELSE score_home END,
+    score_away       = CASE WHEN excluded.status = 'finished' THEN excluded.score_away ELSE score_away END,
+    matchday         = excluded.matchday,
+    home_team_api_id = excluded.home_team_api_id,
+    away_team_api_id = excluded.away_team_api_id
+`);
 
     const updatePts = db.prepare('UPDATE predictions SET points_earned=? WHERE id=?');
 

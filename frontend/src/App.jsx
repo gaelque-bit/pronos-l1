@@ -202,8 +202,8 @@ const CSS = `
   @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
   .live-dot { display:inline-block; width:5px; height:5px; background:#ff4d4d; border-radius:50%; margin-right:3px; animation:pulse 1.2s infinite; }
   .footer { text-align:center; padding:32px 0 16px; border-top:1px solid rgba(227,6,19,0.1); margin-top:48px; }
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9990; display:flex; align-items:flex-start; justify-content:center; padding:40px 20px; overflow-y:auto; }
-  .modal-box { background:var(--coal); border:1px solid rgba(227,6,19,0.25); border-radius:var(--radius); width:100%; max-width:620px; position:relative; }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.98); z-index:9990; display:flex; align-items:flex-start; justify-content:center; padding:40px 20px; overflow-y:auto; }
+  .modal-box { background:#111111; border:1px solid rgba(227,6,19,0.25); border-radius:var(--radius); width:100%; max-width:620px; position:relative; }
   .modal-box::before { content:''; position:absolute; top:0; left:28px; right:28px; height:1px; background:linear-gradient(to right,transparent,var(--gold),transparent); }
   .modal-header { display:flex; align-items:center; justify-content:space-between; padding:24px 28px 0; }
   .modal-title { font-family:var(--font-display); font-size:1.6rem; font-weight:600; color:var(--gold); letter-spacing:0.1em; }

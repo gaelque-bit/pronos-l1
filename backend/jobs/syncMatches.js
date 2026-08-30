@@ -54,8 +54,6 @@ async function syncMatches() {
   VALUES (@api_id, @home_team, @away_team, @home_team_api_id, @away_team_api_id, @kickoff, @status, @score_home, @score_away, @stage, @matchday)
   ON CONFLICT(api_id) DO UPDATE SET
     status           = excluded.status,
-           score_home       = CASE WHEN matches.score_home IS NOT NULL THEN matches.score_home ELSE excluded.score_home END,
-    score_away       = CASE WHEN matches.score_away IS NOT NULL THEN matches.score_away ELSE excluded.score_away END,
     matchday         = excluded.matchday,
     home_team_api_id = excluded.home_team_api_id,
     away_team_api_id = excluded.away_team_api_id

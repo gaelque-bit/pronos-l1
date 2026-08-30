@@ -180,4 +180,54 @@ router.get('/actu', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+// GET /api/team-form/:teamApiId — derniers matchs d'une équipe
+router.get('/team-form/:teamApiId', async (req, res) => {
+  try {
+    const { teamApiId } = req.params;
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const response = await fetch(
+      `https://api.football-data.org/v4/teams/${teamApiId}/matches?status=FINISHED&limit=10`,
+      { headers: { 'X-Auth-Token': process.env.FOOTBALL_API_KEY } }
+    );
+    const data = await response.json();
+    const matches = (data.matches || []).slice(-5).map(m => ({
+      homeTeam: m.homeTeam.shortName || m.homeTeam.name,
+      awayTeam: m.awayTeam.shortName || m.awayTeam.name,
+      homeScore: m.score.fullTime.home,
+      awayScore: m.score.fullTime.away,
+      date: m.utcDate,
+      competition: m.competition.name,
+    }));
+    res.json({ matches });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/head-to-head/:homeApiId/:awayApiId — historique confrontations
+router.get('/head-to-head/:homeApiId/:awayApiId', async (req, res) => {
+  try {
+    const { homeApiId, awayApiId } = req.params;
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const response = await fetch(
+      `https://api.football-data.org/v4/teams/${homeApiId}/matches?status=FINISHED&limit=20`,
+      { headers: { 'X-Auth-Token': process.env.FOOTBALL_API_KEY } }
+    );
+    const data = await response.json();
+    const h2h = (data.matches || [])
+      .filter(m => m.homeTeam.id === +awayApiId || m.awayTeam.id === +awayApiId)
+      .slice(-5)
+      .map(m => ({
+        homeTeam: m.homeTeam.shortName || m.homeTeam.name,
+        awayTeam: m.awayTeam.shortName || m.awayTeam.name,
+        homeScore: m.score.fullTime.home,
+        awayScore: m.score.fullTime.away,
+        date: m.utcDate,
+        competition: m.competition.name,
+      }));
+    res.json({ matches: h2h });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 module.exports = router;

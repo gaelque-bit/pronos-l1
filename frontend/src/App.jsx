@@ -679,10 +679,11 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
     </div>
   );
 }
+function ResultsScreen({ matches, loading, token }) {
+  const [activeDay,setActiveDay]     = useState(null);
+  const [dayRanking,setDayRanking]   = useState([]);
+  const [loadingRank,setLoadingRank] = useState(false);
 
-// ── Résultats ─────────────────────────────────────────────────────────────────
-function ResultsScreen({ matches, loading }) {
-  const [activeDay,setActiveDay] = useState(null);
   const days = [...new Set(matches.filter(m=>m.matchday).map(m=>m.matchday))].sort((a,b)=>a-b);
 
   useEffect(()=>{
@@ -692,8 +693,20 @@ function ResultsScreen({ matches, loading }) {
     }
   },[matches]);
 
+  useEffect(()=>{
+    if (!activeDay) return;
+    const allFinished = matches.filter(m=>m.matchday===activeDay).every(m=>m.status==="finished");
+    if (!allFinished) { setDayRanking([]); return; }
+    setLoadingRank(true);
+    apiCall(`/ranking/journee/${activeDay}`,{},token)
+      .then(d=>setDayRanking(d.classement||[]))
+      .catch(console.error)
+      .finally(()=>setLoadingRank(false));
+  },[activeDay, matches]);
+
   if (loading) return <div className="spinner"/>;
   const currentMatches = activeDay ? matches.filter(m=>m.matchday===activeDay).sort((a,b)=>new Date(a.kickoff)-new Date(b.kickoff)) : [];
+  const allFinished = currentMatches.length>0 && currentMatches.every(m=>m.status==="finished");
 
   return (
     <div>
@@ -719,11 +732,28 @@ function ResultsScreen({ matches, loading }) {
           </div>
         </div>
       ))}
+      {allFinished && (
+        <>
+          <div className="section-title" style={{marginTop:24}}>Classement Journée {activeDay}</div>
+          {loadingRank ? <div className="spinner"/> : dayRanking.length===0 ? (
+            <div className="empty"><div className="empty-icon">📊</div>Aucun pronostic.</div>
+          ) : (
+            <div className="rank-list">
+              {dayRanking.sort((a,b)=>b.pts_journee-a.pts_journee).map((row,i)=>(
+                <div key={row.id} className="rank-row" style={{cursor:"default"}}>
+                  <div className="rank-num">{i+1}</div>
+                  <div><div className="rank-username">{row.username}</div></div>
+                  <div className="rank-total">{row.pts_journee}<span>pts</span></div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
       {days.length===0 && <div className="empty"><div className="empty-icon">⚽</div>Les matchs apparaîtront dès le début de la saison.</div>}
     </div>
   );
 }
-
 // ── Carte pronostic ───────────────────────────────────────────────────────────
 function PronoCard({ match, prediction, token, onPredicted }) {
   const [home,setHome]     = useState(prediction?.pred_home??"");
@@ -1447,7 +1477,7 @@ export default function App() {
                   <button className={`tab-main ${tab==="classement"?"active":""}`} onClick={()=>setTab("classement")}>Classement</button>
                 </div>
                 {tab==="accueil"    && <HomeScreen matches={matches} token={token} currentUser={user} onNavigate={setTab}/>}
-                {tab==="resultats"  && <ResultsScreen matches={matches} loading={loading}/>}
+                {tab==="resultats"  && <ResultsScreen matches={matches} loading={loading} token={token}/>}
                 {tab==="pronostics" && <PredictionsScreen matches={matches} loading={loading} token={token}/>}
                 {tab==="bonus"      && <BonusScreen token={token}/>}
                 {tab==="classement" && <RankingScreen currentUser={user} token={token}/>}

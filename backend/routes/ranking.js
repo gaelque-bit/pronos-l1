@@ -122,14 +122,14 @@ router.get('/series', (req, res) => {
 router.get('/ranking/journee/:day', (req, res) => {
   try {
     const { day } = req.params;
-    const rows = db.prepare(`
+       const rows = db.prepare(`
       SELECT
         u.id, u.username,
         COALESCE(SUM(p.points_earned), 0) AS pts_journee
       FROM users u
       LEFT JOIN predictions p ON p.user_id = u.id
-      LEFT JOIN matches m ON m.id = p.match_id AND m.matchday = ? AND m.status = 'finished'
-      WHERE u.role = 'user'
+      LEFT JOIN matches m ON m.id = p.match_id
+      WHERE m.matchday = ? AND m.status = 'finished' AND u.role = 'user'
       GROUP BY u.id, u.username
       ORDER BY pts_journee DESC
     `).all(day);

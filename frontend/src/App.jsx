@@ -622,7 +622,7 @@ function HomeScreen({ matches, token, currentUser, onNavigate }) {
                 <div className="home-match-center">
                   {m.status==="finished" ? <div style={{fontFamily:"var(--font-display)",fontSize:"1.1rem",fontWeight:600,color:"var(--gold)"}}>{m.score_home}–{m.score_away}</div>
                     : m.status==="live" ? <div style={{color:"#ff4d4d",fontSize:"0.72rem",fontWeight:600}}><span className="live-dot"/>Live</div>
-                    : <div className="home-match-time">{formatTime(m.kickoff)}</div>}
+                    : <div className="home-match-time">{formatDate(m.kickoff)}</div>}
                   {pred && !locked && <div className="home-match-prono">✓ {pred.pred_home}-{pred.pred_away}</div>}
                   {pred && locked && m.status==="finished" && <div className="home-match-prono">{pred.pred_home}-{pred.pred_away} · {pred.points_earned}pts</div>}
                   {!pred && !locked && <div className="home-match-todo">À pronostiquer</div>}

@@ -52,8 +52,10 @@ async function syncMatches() {
     const upsert = db.prepare(`
   INSERT INTO matches (api_id, home_team, away_team, home_team_api_id, away_team_api_id, kickoff, status, score_home, score_away, stage, matchday)
   VALUES (@api_id, @home_team, @away_team, @home_team_api_id, @away_team_api_id, @kickoff, @status, @score_home, @score_away, @stage, @matchday)
-  ON CONFLICT(api_id) DO UPDATE SET
+    ON CONFLICT(api_id) DO UPDATE SET
     status           = excluded.status,
+    score_home       = CASE WHEN excluded.status = 'finished' THEN excluded.score_home ELSE score_home END,
+    score_away       = CASE WHEN excluded.status = 'finished' THEN excluded.score_away ELSE score_away END,
     matchday         = excluded.matchday,
     home_team_api_id = excluded.home_team_api_id,
     away_team_api_id = excluded.away_team_api_id

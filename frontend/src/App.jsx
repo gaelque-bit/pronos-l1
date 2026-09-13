@@ -731,7 +731,7 @@ function ResultsScreen({ matches, loading, token }) {
             <div className="match-team away"><ClubLogo name={m.away_team}/><span>{teamName(m.away_team)}</span></div>
           </div>
                  {m.status==="finished" && (
-            <a href={`https://onefootball.com/fr/recherche?q=${encodeURIComponent(teamName(m.home_team)+' '+teamName(m.away_team))}`} target="_blank" rel="noopener noreferrer"
+            <a href="https://onefootball.com/fr/competition/ligue-1-23/matchs" target="_blank" rel="noopener noreferrer"
               style={{marginTop:8,display:"block",background:"none",border:"1px solid rgba(227,6,19,0.15)",borderRadius:"var(--radius)",padding:"5px 14px",color:"var(--gray)",fontSize:"0.65rem",fontFamily:"var(--font-body)",letterSpacing:"0.1em",textTransform:"uppercase",textDecoration:"none",textAlign:"center"}}>
               ▶ Résumé OneFootball
             </a>
